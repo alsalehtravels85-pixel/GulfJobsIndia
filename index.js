@@ -56,6 +56,9 @@ function supabaseHeaders(env, extra = {}) {
   return { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, ...extra };
 }
 async function db(env, path, options = {}) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Cloudflare secrets missing: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  }
   const url = env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/" + path;
   return fetch(url, { ...options, headers: supabaseHeaders(env, options.headers || {}) });
 }
@@ -158,10 +161,19 @@ export default {
         if (!name || !phone || !email || !agency || password.length < 8 || password.length > 200) return json({ error: "Saari details bharein. Password kam se kam 8 characters ka ho." }, 400, cors);
         if (!/^[0-9+() -]{7,20}$/.test(phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Email ya mobile number check karein." }, 400, cors);
         const exists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
-        if (!exists.ok) return json({ error: "Agent database setup check karein. schema.sql run hua hai?" }, 502, cors);
-        if ((await exists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
+        if (!exists.ok) {
+          const detail = (await exists.text()).slice(0, 700);
+          console.error("AGENT_REGISTER_LOOKUP_FAILED", exists.status, detail);
+          return json({ error: "Supabase se agents lookup fail hua.", status: exists.status, detail }, 502, cors);
+        }
+        const existingRows = await exists.json();
+        if (existingRows.length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
         const r = await db(env, "agents", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ full_name: name, phone, email, agency_name: agency, password_hash: await passwordHash(password), status: "pending" }) });
-        if (!r.ok) return json({ error: "Registration save nahi hui. Supabase schema check karein." }, 502, cors);
+        if (!r.ok) {
+          const detail = (await r.text()).slice(0, 700);
+          console.error("AGENT_REGISTER_INSERT_FAILED", r.status, detail);
+          return json({ error: "Supabase mein registration save nahi hui.", status: r.status, detail }, 502, cors);
+        }
         return json({ ok: true, message: "Registration ho gayi. Admin approval ke baad login kar sakenge." }, 201, cors);
       }
       if (path === "/api/agent/login" && request.method === "POST") {
@@ -352,7 +364,8 @@ export default {
       if (path.startsWith("/api/")) return json({ error: "API route nahi mila." }, 404, cors);
       return env.ASSETS.fetch(request);
     } catch (e) {
-      return json({ error: "Server par error aaya. Settings aur logs check karein.", detail: (env.ENVIRONMENT === "development" ? String(e) : undefined) }, 500, cors);
+      console.error("WORKER_REQUEST_ERROR", request.method, new URL(request.url).pathname, e?.stack || String(e));
+      return json({ error: "Server par error aaya. Settings aur logs check karein.", detail: String(e?.message || e).slice(0, 500) }, 500, cors);
     }
   }
 };
