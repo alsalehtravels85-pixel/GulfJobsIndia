@@ -37,14 +37,12 @@ function renderJobs() {
 async function loadJobs() {
   const list = document.getElementById("jobList");
   try {
-    const r = await fetch(`${API}/api/jobs`, { headers: { "Accept": "application/json" } });
-    const payload = await r.json().catch(() => null);
-    if (!r.ok) throw new Error(payload?.error || `Jobs API error (${r.status}). Cloudflare Worker deployment/route check karein.`);
-    if (!Array.isArray(payload)) throw new Error("Jobs API se valid list nahi mili. Worker route check karein.");
-    allJobs = payload;
+    const r = await fetch(`${API}/api/jobs`);
+    if (!r.ok) throw new Error("Could not load jobs");
+    allJobs = await r.json();
     renderJobs();
-  } catch (err) {
-    list.innerHTML = `<div class="empty-state">Jobs load nahi ho rahe: ${escapeHtml(err?.message || "Network error")}</div>`;
+  } catch {
+    list.innerHTML = `<div class="empty-state">Jobs abhi load nahi ho rahe. Cloudflare deployment aur Supabase settings check karein.</div>`;
     document.getElementById("jobCount").textContent = "Jobs unavailable";
   }
 }

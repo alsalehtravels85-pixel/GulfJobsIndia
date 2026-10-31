@@ -1,0 +1,18 @@
+GulfJobsIndia - Latest Worker Deployment
+
+IMPORTANT: Is ZIP ko Cloudflare ke "Upload static files" option mein upload NA karein.
+Ye Worker + static assets project hai, isliye GitHub repository ke root mein files commit karke Cloudflare Git integration se deploy karna hai.
+
+1. ZIP extract karein.
+2. Andar ka GulfJobsIndia folder kholein.
+3. Is folder ke andar ke sabhi files/folders ko GitHub repository alsalehtravel85-pixel/GulfJobsIndia ke root mein upload/replace karein. Folder ko nested GulfJobsIndia/GulfJobsIndia mat banayein.
+4. Confirm karein root par wrangler.toml hai, src/index.js hai, aur public folder mein index.html aur agent.html hain.
+5. Commit changes to main.
+6. Cloudflare Worker Settings > Builds mein deploy command npx wrangler deploy rehne dein. Commit ke baad build/deployment successful hone dein.
+7. Cloudflare Settings > Variables and Secrets mein SESSION_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD set hone chahiye. SESSION_SECRET and ADMIN_PASSWORD should be secrets. Do not paste secret values into public chat or source files.
+8. Supabase mein schema.sql ko run/update karein if not already done.
+9. Test: https://gulfjobsindia.gulfjob.workers.dev/api/health
+   Expected: JSON with ok:true and service GulfJobsIndia API.
+10. Then test Agent Registration page.
+
+NOTE: Existing deployment ko update karne se pehle apni current repository ka backup/download rakh lein.

@@ -56,9 +56,6 @@ function supabaseHeaders(env, extra = {}) {
   return { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, ...extra };
 }
 async function db(env, path, options = {}) {
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-    return new Response(JSON.stringify({ error: "Cloudflare environment variables SUPABASE_URL aur SUPABASE_SERVICE_ROLE_KEY set nahi hain." }), { status: 500, headers: { "Content-Type": "application/json; charset=utf-8" } });
-  }
   const url = env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/" + path;
   return fetch(url, { ...options, headers: supabaseHeaders(env, options.headers || {}) });
 }
@@ -129,12 +126,10 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
     const url = new URL(request.url);
-    const rawPath = url.pathname.replace(/\/+$/, "") || "/";
-    // Backward-compatible aliases for older frontend builds.
-    const path = rawPath === "/jobs" ? "/api/jobs" : rawPath === "/health" ? "/api/health" : rawPath;
+    const path = url.pathname.replace(/\/+$/, "") || "/";
     try {
       if (path === "/api/health" && request.method === "GET") {
-        return json({ ok: true, service: "GulfJobsIndia API", version: "2026-10-31" }, 200, cors);
+        return json({ ok: true, service: "GulfJobsIndia API" }, 200, cors);
       }
 
       if (path === "/api/config" && request.method === "GET") {
@@ -357,7 +352,7 @@ export default {
       if (path.startsWith("/api/")) return json({ error: "API route nahi mila." }, 404, cors);
       return env.ASSETS.fetch(request);
     } catch (e) {
-      return json({ error: "Server par error aaya. Cloudflare Worker logs aur environment variables check karein.", detail: (env.ENVIRONMENT === "development" ? String(e) : undefined) }, 500, cors);
+      return json({ error: "Server par error aaya. Settings aur logs check karein.", detail: (env.ENVIRONMENT === "development" ? String(e) : undefined) }, 500, cors);
     }
   }
 };
