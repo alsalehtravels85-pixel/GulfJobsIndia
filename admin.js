@@ -29,6 +29,7 @@ document.querySelectorAll(".admin-tabs button").forEach(btn => btn.addEventListe
   document.querySelectorAll(".admin-tabs button").forEach(b => b.classList.toggle("active", b === btn));
   document.querySelectorAll(".admin-panel").forEach(p => p.classList.toggle("hidden", p.id !== btn.dataset.tab));
   if (btn.dataset.tab === "applicationsTab") loadApplications();
+  if (btn.dataset.tab === "agentsTab") loadAgents();
 }));
 function formObject(form) {
   const fd = new FormData(form), out = {};
@@ -91,3 +92,6 @@ $("#applicationsRows").addEventListener("click", async e => {
   finally { btn.disabled = false; }
 });
 if (token) showDashboard();
+
+async function loadAgents(){const rows=$("#agentsRows");rows.innerHTML='<tr><td colspan="4">Loading…</td></tr>';try{const agents=await api("/api/admin/agents");rows.innerHTML=agents.length?agents.map(a=>`<tr><td><strong>${esc(a.full_name)}</strong><br>${esc(a.phone)}<br><small>${esc(a.email)}</small></td><td>${esc(a.agency_name)}</td><td>${esc(a.status)}</td><td><select data-agent-status="${esc(a.id)}"><option value="pending" ${a.status==="pending"?"selected":""}>Pending</option><option value="approved" ${a.status==="approved"?"selected":""}>Approved</option><option value="blocked" ${a.status==="blocked"?"selected":""}>Blocked</option></select></td></tr>`).join(""):'<tr><td colspan="4">Abhi koi agent registered nahi.</td></tr>'}catch(err){rows.innerHTML=`<tr><td colspan="4">${esc(err.message)}</td></tr>`}}
+$("#agentsRows")?.addEventListener("change",async e=>{const sel=e.target.closest("[data-agent-status]");if(!sel)return;try{await api(`/api/admin/agents/${sel.dataset.agentStatus}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:sel.value})});$("#agentsMessage").textContent="Agent status update ho gaya."}catch(err){$("#agentsMessage").textContent=err.message;loadAgents()}});
