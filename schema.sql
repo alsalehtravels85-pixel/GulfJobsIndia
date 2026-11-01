@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.agents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   full_name TEXT NOT NULL,
   phone TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
+  email TEXT UNIQUE,
   agency_name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','blocked')),
@@ -51,3 +51,6 @@ ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS agent_id UUID REFERENCE
 ALTER TABLE public.agents ENABLE ROW LEVEL SECURITY;
 
 -- Add agent ownership column to existing applications table if it was created earlier.
+
+-- Existing database par bhi agent email ko optional banayein.
+ALTER TABLE public.agents ALTER COLUMN email DROP NOT NULL;

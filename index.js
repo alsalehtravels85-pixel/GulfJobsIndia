@@ -157,17 +157,20 @@ export default {
       if (path === "/api/agent/register" && request.method === "POST") {
         if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
         const b = await request.json();
-        const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), email = cleanText(b.email, 160).toLowerCase(), agency = cleanText(b.agency_name, 160), password = String(b.password || "");
-        if (!name || !phone || !email || !agency || password.length < 8 || password.length > 200) return json({ error: "Saari details bharein. Password kam se kam 8 characters ka ho." }, 400, cors);
-        if (!/^[0-9+() -]{7,20}$/.test(phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Email ya mobile number check karein." }, 400, cors);
-        const exists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
-        if (!exists.ok) {
-          const detail = (await exists.text()).slice(0, 700);
-          console.error("AGENT_REGISTER_LOOKUP_FAILED", exists.status, detail);
-          return json({ error: "Supabase se agents lookup fail hua.", status: exists.status, detail }, 502, cors);
+        const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), emailText = cleanText(b.email, 160).toLowerCase(), email = emailText || null, agency = cleanText(b.agency_name, 160), password = String(b.password || "");
+        if (!name || !phone || !agency || password.length < 8 || password.length > 200) return json({ error: "Name, mobile, agency aur password bharein. Password kam se kam 8 characters ka ho." }, 400, cors);
+        if (!/^[0-9+() -]{7,20}$/.test(phone)) return json({ error: "Mobile number check karein." }, 400, cors);
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Email address check karein ya field khaali chhodein." }, 400, cors);
+        if (email) {
+          const exists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
+          if (!exists.ok) {
+            const detail = (await exists.text()).slice(0, 700);
+            console.error("AGENT_REGISTER_LOOKUP_FAILED", exists.status, detail);
+            return json({ error: "Supabase se agents lookup fail hua.", status: exists.status, detail }, 502, cors);
+          }
+          const existingRows = await exists.json();
+          if (existingRows.length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
         }
-        const existingRows = await exists.json();
-        if (existingRows.length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
         const r = await db(env, "agents", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ full_name: name, phone, email, agency_name: agency, password_hash: await passwordHash(password), status: "pending" }) });
         if (!r.ok) {
           const detail = (await r.text()).slice(0, 700);
@@ -178,13 +181,16 @@ export default {
       }
       if (path === "/api/agent/login" && request.method === "POST") {
         if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
-        const b = await request.json(), email = cleanText(b.email, 160).toLowerCase(), password = String(b.password || "");
-        const r = await db(env, `agents?select=id,full_name,email,password_hash,status&email=eq.${encodeURIComponent(email)}&limit=1`);
+        const b = await request.json(), identifier = cleanText(b.identifier || b.email, 160).toLowerCase(), password = String(b.password || "");
+        if (!identifier || !password) return json({ error: "Email/mobile aur password bharein." }, 400, cors);
+        const isEmail = identifier.includes("@");
+        const loginField = isEmail ? "email" : "phone";
+        const r = await db(env, `agents?select=id,full_name,email,phone,password_hash,status&${loginField}=eq.${encodeURIComponent(identifier)}&limit=1`);
         if (!r.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
         const rows = await r.json();
-        if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Email ya password galat hai." }, 401, cors);
+        if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Email/mobile ya password galat hai." }, 401, cors);
         if (rows[0].status !== "approved") return json({ error: rows[0].status === "blocked" ? "Account block hai. Admin se contact karein." : "Account approval pending hai." }, 403, cors);
-        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email } }, 200, cors);
+        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email, phone: rows[0].phone } }, 200, cors);
       }
       if (path.startsWith("/api/agent/")) {
         const identity = await agentIdentity(request, env);
