@@ -235,3 +235,23 @@ body .country-card:hover, body .success-card:hover, body .step:hover { transform
  .site-header .nav{height:62px}.hero{padding:34px 0 53px!important}.hero-grid{gap:25px!important}.hero-card{padding:17px!important;animation:none}.hero-visual{height:170px!important}.hero-card h2{font-size:25px!important}.site-header nav{gap:10px}.nav-admin{padding:9px 10px;font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.hero:before,.hero-card,.orbit-one,.hero-plane{animation:none!important}}
+
+
+/* FINAL CORRECTION: compact header/hero + restore Agent Login */
+.site-header .nav{height:58px!important;gap:16px!important}
+.brand{font-size:18px}
+.brand-mark{width:36px;height:36px;border-radius:11px}
+.site-header nav{gap:clamp(10px,1.35vw,20px)!important;font-size:11px!important}
+.nav-login{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:9px;font-weight:750;white-space:nowrap}
+.nav-admin{background:linear-gradient(135deg,#07583f,#0c8b62);color:#fff!important}
+.hero{padding:34px 0 42px!important}
+.hero-grid{gap:clamp(24px,3.5vw,48px)!important}
+.hero h1{font-size:clamp(40px,4.8vw,60px)!important;margin:8px 0!important}
+.hero .hero-copy>p,.hero p{font-size:14px;line-height:1.6;margin:8px 0!important}
+.hero-actions{margin:14px 0!important}
+.hero-card{padding:17px 20px!important;border-radius:20px!important}
+.hero-visual{height:145px!important;margin:9px 0!important}
+.hero-card h2{font-size:24px!important;margin:8px 0 5px!important}
+.hero-card .text-link{margin-top:5px}
+.hero-card-foot{margin-top:7px;padding-top:7px!important}
+@media(max-width:760px){.site-header .nav{height:auto!important;min-height:58px;padding:8px 0;flex-wrap:wrap}.site-header nav{gap:6px!important;flex-wrap:wrap;justify-content:flex-end}.nav-login{padding:7px 8px;font-size:10px}.hero{padding:27px 0 36px!important}.hero-visual{height:135px!important}.hero-card{padding:15px!important}}
