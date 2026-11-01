@@ -116,3 +116,122 @@ body .country-card:hover, body .success-card:hover, body .step:hover { transform
   body .country-card, body .success-card, body .step { transition: none !important; }
   body .country-card:hover, body .success-card:hover, body .step:hover { transform: none; }
 }
+
+
+
+/* ===== Islamic + Tiranga + Gulf career hero animation (HTML + CSS) ===== */
+.site-header .nav { height: 64px; }
+.nav-admin {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 13px; border-radius: 10px;
+  color: #fff !important; background: linear-gradient(135deg,#a72a20,#d44b35);
+  box-shadow: 0 5px 14px rgba(167,42,32,.18);
+  white-space: nowrap;
+}
+.nav-admin:hover { background: #8e2018; color: #fff !important; transform: translateY(-1px); }
+.hero { padding: 42px 0 48px !important; }
+.hero-grid { gap: 44px !important; }
+.hero h1 { margin: 11px 0; }
+.hero p { margin: 10px 0; }
+.hero-actions { margin: 17px 0; }
+.hero-card { padding: 19px 22px !important; border-radius: 22px !important; }
+.hero-card h2 { margin: 12px 0 5px !important; }
+.hero-card .text-link { margin-top: 8px; }
+.hero-card-foot { margin-top: 10px; display:flex; gap:14px; flex-wrap:wrap; color:#d7eee2; font-size:10px; }
+.hero-visual {
+  position: relative; isolation: isolate; overflow: hidden;
+  height: 190px; margin: 12px 0 7px; border-radius: 17px;
+  border: 1px solid rgba(255,255,255,.18);
+  background:
+    radial-gradient(circle at 78% 18%, rgba(243,198,91,.25), transparent 25%),
+    linear-gradient(145deg, rgba(3,35,27,.8), rgba(10,111,75,.7));
+}
+.hero-pattern {
+  position:absolute; inset:-50%; z-index:-1; opacity:.22;
+  background-image:
+    repeating-linear-gradient(45deg,transparent 0 17px,rgba(255,255,255,.35) 18px 19px,transparent 20px 37px),
+    repeating-linear-gradient(-45deg,transparent 0 17px,rgba(243,198,91,.35) 18px 19px,transparent 20px 37px);
+  animation: islamicPatternMove 24s linear infinite;
+}
+.hero-orbit { position:absolute; border:1px solid rgba(243,198,91,.45); border-radius:50%; }
+.orbit-one { width:190px;height:190px;left:calc(50% - 95px);top:12px; }
+.orbit-two { width:140px;height:140px;left:calc(50% - 70px);top:37px;border-style:dashed;animation:orbitSpin 22s linear infinite; }
+.hero-moon { position:absolute; top:15px; left:19px; font-size:39px; line-height:1; color:#f3c65b; text-shadow:0 0 20px #f3c65b75; animation:moonGlow 3s ease-in-out infinite; }
+.hero-star { position:absolute;color:#ffe7a0;text-shadow:0 0 12px #f3c65b; }
+.star-one { top:25px; right:27%;font-size:22px;animation:starTwinkle 2s ease-in-out infinite; }
+.star-two { top:68px; right:12%;font-size:17px;animation:starTwinkle 2.8s ease-in-out infinite .5s; }
+.hero-plane { position:absolute;top:29px;left:42%;font-size:21px;color:#fff;animation:planeFly 9s ease-in-out infinite; }
+.hero-skyline { position:absolute;bottom:0;left:22%;right:0;height:82px;display:flex;align-items:flex-end;gap:5px;opacity:.85; }
+.hero-skyline i { display:block;flex:1;min-width:8px;height:38%;border:1px solid #bcebd3;background:linear-gradient(180deg,#197d5c,#073f30);border-radius:3px 3px 0 0; }
+.hero-skyline i:nth-child(2){height:62%}.hero-skyline i:nth-child(3){height:48%}.hero-skyline i:nth-child(4){height:100%;max-width:24px;clip-path:polygon(25% 0,75% 0,100% 100%,0 100%)}.hero-skyline i:nth-child(5){height:68%}.hero-skyline i:nth-child(6){height:42%}.hero-skyline i:nth-child(7){height:75%}
+.hero-mosque { position:absolute;left:13%;bottom:0;width:57px;height:54px; }
+.hero-mosque:before { content:"";position:absolute;left:13px;top:0;width:31px;height:31px;background:#d9eee1;border-radius:50% 50% 0 0;clip-path:polygon(50% 0,100% 55%,100% 100%,0 100%,0 55%); }
+.hero-mosque:after { content:"";position:absolute;left:25px;top:-10px;width:3px;height:15px;background:#f3c65b; }
+.hero-mosque i { position:absolute;left:0;bottom:0;width:57px;height:31px;background:#d9eee1;border-radius:5px 5px 0 0; }
+.hero-mosque b { position:absolute;z-index:1;left:23px;bottom:0;width:12px;height:21px;background:#0a6849;border-radius:10px 10px 0 0; }
+.hero-mosque span { position:absolute;z-index:2;left:5px;top:3px;width:6px;height:44px;background:#d9eee1;border-radius:5px 5px 0 0;box-shadow:41px 0 0 #d9eee1; }
+.hero-flag { position:absolute;left:15px;bottom:13px;width:30px;height:42px;display:flex;flex-direction:column;box-shadow:0 0 0 1px #ffffff45;animation:flagWave 2.6s ease-in-out infinite;transform-origin:left center; }
+.hero-flag b { flex:1;display:block; }.hero-flag b:nth-child(1){background:#ff9933}.hero-flag b:nth-child(2){background:#fff}.hero-flag b:nth-child(3){background:#138808}
+.hero-flag em { position:absolute;left:10px;top:13px;font-style:normal;font-size:10px;color:#1c4d9b; }
+.hero-briefcase { position:absolute;right:15px;bottom:13px;display:flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #ffffff38;border-radius:10px;background:#042f25b8;color:#f3c65b;font-size:18px;animation:briefcaseBob 3.5s ease-in-out infinite; }
+.hero-briefcase span {font-size:8px;letter-spacing:1px;color:#fff;font-weight:800}
+@keyframes islamicPatternMove {to{transform:translate(38px,38px)}}
+@keyframes orbitSpin {to{transform:rotate(360deg)}}
+@keyframes moonGlow {50%{filter:drop-shadow(0 0 9px #f3c65b);transform:translateY(-3px)}}
+@keyframes starTwinkle {50%{opacity:.35;transform:scale(.78)}}
+@keyframes planeFly {0%,100%{transform:translate(0,0) rotate(-7deg)}50%{transform:translate(70px,18px) rotate(-2deg)}}
+@keyframes flagWave {50%{transform:perspective(70px) rotateY(-15deg)}}
+@keyframes briefcaseBob {50%{transform:translateY(-5px)}}
+@media(max-width:760px) {
+  .site-header .nav {height:62px}
+  .hero {padding:25px 0 30px !important}
+  .hero-grid {gap:20px !important}
+  .hero-card {padding:15px !important}
+  .hero-visual {height:155px}
+  .hero h1 {font-size:clamp(34px,10vw,46px);letter-spacing:-1.8px}
+  .hero .trust-row {font-size:10px}
+  .nav-admin {text-align:center}
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero-pattern,.orbit-two,.hero-moon,.hero-star,.hero-plane,.hero-flag,.hero-briefcase {animation:none!important}
+}
+
+
+/* PREMIUM ANIMATED HERO — final visual pass */
+.site-header .nav{height:68px;gap:22px}
+.site-header nav{gap:clamp(12px,1.7vw,25px);font-size:12px}
+.brand{font-size:19px}
+.nav-admin{background:linear-gradient(135deg,#07583f,#0c8b62);box-shadow:0 6px 16px #07583f25;border:1px solid #ffffff25}
+.hero{padding:64px 0 78px!important;isolation:isolate}
+.hero:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.17;background-image:repeating-linear-gradient(45deg,transparent 0 42px,#d7f5e5 43px,transparent 44px 84px),repeating-linear-gradient(-45deg,transparent 0 42px,#f3c65b 43px,transparent 44px 84px);background-size:120px 120px;animation:patternDrift 32s linear infinite}
+.hero-grid{gap:clamp(30px,5vw,68px)!important}
+.hero h1{font-size:clamp(43px,5.2vw,66px);max-width:650px;line-height:1.04;letter-spacing:-2.9px}
+.hero-card{padding:23px 25px!important;min-width:0;overflow:hidden;animation:cardFloat 7s ease-in-out infinite;box-shadow:0 28px 80px #001b1345,inset 0 1px #ffffff1c}
+.hero-card:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,#ffffff0a,transparent 40%,#f3c65b0b)}
+.hero-visual{height:205px!important;margin:15px 0 12px!important;border-radius:18px!important;background:radial-gradient(ellipse at 72% 20%,#f3c65b25,transparent 26%),linear-gradient(155deg,#052e24,#0a7954)!important;box-shadow:inset 0 0 35px #001b1933}
+.hero-pattern{opacity:.19!important;background-size:56px 56px!important}
+.hero-orbit{pointer-events:none}
+.orbit-one{width:220px;height:220px;left:calc(50% - 110px);top:-8px;border-color:#f3c65b55;animation:orbitPulse 5s ease-in-out infinite}
+.orbit-two{width:166px;height:166px;left:calc(50% - 83px);top:19px}
+.hero-moon{left:26px;top:19px;font-size:42px;z-index:2}
+.hero-skyline{left:19%;height:100px;gap:6px}
+.hero-skyline i{box-shadow:0 0 14px #a9e9ce12}
+.hero-mosque{left:13%;transform:scale(1.08);transform-origin:bottom center}
+.hero-flag{z-index:3;left:19px;bottom:14px;width:31px;height:46px;box-shadow:0 3px 10px #001b1840;animation:flagWave 2.4s ease-in-out infinite}
+.hero-plane{z-index:3;font-size:23px;animation:planeFlight 8s ease-in-out infinite}
+.hero-star{z-index:2}
+.hero-briefcase{z-index:3;right:17px;bottom:14px;backdrop-filter:blur(8px);box-shadow:0 8px 22px #001b1840}
+.hero-card h2{font-size:clamp(24px,2.2vw,30px)!important;line-height:1.16}
+.hero-card-foot{position:relative;z-index:1;padding-top:10px;border-top:1px solid #ffffff20}
+.hero-actions .btn{transition:transform .25s,box-shadow .25s}
+.hero-actions .btn:hover{transform:translateY(-3px);box-shadow:0 12px 25px #001b1830}
+.search-box{border-radius:20px!important}
+.country-card,.job-card,.step,.form-card{transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+@keyframes patternDrift{to{background-position:120px 120px,-120px 120px}}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes orbitPulse{0%,100%{opacity:.55;transform:scale(.98)}50%{opacity:1;transform:scale(1.02)}}
+@keyframes planeFlight{0%,100%{transform:translate(0,0) rotate(-8deg)}45%{transform:translate(85px,14px) rotate(-2deg)}70%{transform:translate(45px,27px) rotate(3deg)}}
+@media(max-width:760px){
+ .site-header .nav{height:62px}.hero{padding:34px 0 53px!important}.hero-grid{gap:25px!important}.hero-card{padding:17px!important;animation:none}.hero-visual{height:170px!important}.hero-card h2{font-size:25px!important}.site-header nav{gap:10px}.nav-admin{padding:9px 10px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.hero:before,.hero-card,.orbit-one,.hero-plane{animation:none!important}}
