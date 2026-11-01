@@ -450,7 +450,13 @@ export default {
       if (path.startsWith("/api/")) return json({ error: "API route nahi mila." }, 404, cors);
       return env.ASSETS.fetch(request);
     } catch (e) {
-      return json({ error: "Server par error aaya. Settings aur logs check karein.", detail: (env.ENVIRONMENT === "development" ? String(e) : undefined) }, 500, cors);
+      // Log the actual exception in Cloudflare Workers Logs without exposing it to visitors.
+      console.error("Worker request exception", {
+        path: new URL(request.url).pathname,
+        message: String(e?.message || e),
+        stack: String(e?.stack || "").slice(0, 4000)
+      });
+      return json({ error: "Server par error aaya. Settings aur logs check karein." }, 500, cors);
     }
   }
 };
