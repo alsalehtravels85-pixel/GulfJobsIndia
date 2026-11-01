@@ -1,8 +1,6 @@
 const API = "";
 const WA = "918576850306";
 let allJobs = [];
-let allStories = [];
-let storiesExpanded = false;
 
 const escapeHtml = (s = "") => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function waLink(job) {
@@ -36,48 +34,6 @@ function renderJobs() {
   select.innerHTML = `<option value="">Select a published job</option>` + allJobs.map(j => `<option value="${escapeHtml(j.id)}">${escapeHtml(j.title)} — ${escapeHtml(j.country)}</option>`).join("");
   if (allJobs.some(j => j.id === selected)) select.value = selected;
 }
-function storyCard(s, index) {
-  const name = String(s.candidate_name || "Selected Candidate").trim();
-  const title = String(s.job_title || "Gulf Job").trim();
-  const country = String(s.country || "Gulf Region").trim();
-  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase() || "SC";
-  return `<article class="success-card" style="--story-delay:${Math.min(index, 8) * 65}ms"><div class="success-card-top"><span class="success-avatar" aria-hidden="true">${escapeHtml(initials)}</span><span class="selected-badge"><span>✓</span> SELECTED</span></div><h3>${escapeHtml(name)}</h3><p class="success-job">${escapeHtml(title)}</p><div class="success-country"><span aria-hidden="true">📍</span> ${escapeHtml(country)}</div><div class="success-card-foot"><span>✦ Career milestone</span><span class="success-spark" aria-hidden="true">✧</span></div></article>`;
-}
-function renderStories() {
-  const grid = document.getElementById("successStories");
-  const empty = document.getElementById("noStories");
-  const count = document.getElementById("storyCount");
-  const more = document.getElementById("viewMoreStories");
-  if (!grid || !empty || !count || !more) return;
-  count.textContent = `${allStories.length} ${allStories.length === 1 ? "candidate" : "candidates"}`;
-  if (!allStories.length) {
-    grid.innerHTML = "";
-    empty.classList.remove("hidden");
-    more.classList.add("hidden");
-    return;
-  }
-  empty.classList.add("hidden");
-  const visible = storiesExpanded ? allStories : allStories.slice(0, 5);
-  grid.innerHTML = visible.map(storyCard).join("");
-  more.classList.toggle("hidden", allStories.length <= 5);
-  more.textContent = storiesExpanded ? "View Less ↑" : `View More Candidates (${allStories.length - 5} more) ↓`;
-  more.setAttribute("aria-expanded", String(storiesExpanded));
-}
-async function loadSuccessStories() {
-  const grid = document.getElementById("successStories");
-  if (!grid) return;
-  try {
-    const r = await fetch(`${API}/api/success-stories`);
-    if (!r.ok) throw new Error("Could not load candidate updates");
-    const data = await r.json();
-    allStories = Array.isArray(data) ? data : [];
-    renderStories();
-  } catch {
-    grid.innerHTML = `<div class="empty-state">Candidate updates abhi load nahi ho rahe. Thodi der baad try karein.</div>`;
-    document.getElementById("storyCount").textContent = "Updates unavailable";
-  }
-}
-
 async function loadJobs() {
   const list = document.getElementById("jobList");
   try {
@@ -109,7 +65,6 @@ document.getElementById("searchBtn")?.addEventListener("click", renderJobs);
 document.getElementById("searchInput")?.addEventListener("input", renderJobs);
 document.getElementById("countryFilter")?.addEventListener("change", renderJobs);
 document.getElementById("year").textContent = new Date().getFullYear();
-document.getElementById("viewMoreStories")?.addEventListener("click", () => { storiesExpanded = !storiesExpanded; renderStories(); });
 
 document.getElementById("applicationForm")?.addEventListener("submit", async e => {
   e.preventDefault();
@@ -130,4 +85,37 @@ document.getElementById("applicationForm")?.addEventListener("submit", async e =
   } finally { btn.disabled = false; btn.textContent = "Submit Application"; }
 });
 loadJobs();
+
+
+async function loadSuccessStories() {
+  const list = document.querySelector("#successStories");
+  const count = document.querySelector("#storyCount");
+  const empty = document.querySelector("#noStories");
+  if (!list) return;
+  try {
+    const response = await fetch("/api/success-stories");
+    if (!response.ok) throw new Error("Stories unavailable");
+    const stories = await response.json();
+    count.textContent = `${stories.length} selected`;
+    list.innerHTML = stories.length ? stories.map(story => `
+      <article class="success-card">
+        <div class="success-avatar" aria-hidden="true">${escapeHtml((story.candidate_name || "C").trim().charAt(0).toUpperCase())}</div>
+        <div class="success-card-body">
+          <span class="success-badge">✓ Selected</span>
+          <h3>${escapeHtml(story.candidate_name || "Candidate")}</h3>
+          <p class="success-job">${escapeHtml(story.job_title || "Gulf Job")}</p>
+          <p class="success-country">${escapeHtml(story.country || "Gulf")}</p>
+        </div>
+      </article>`).join("") : "";
+    empty?.classList.toggle("hidden", stories.length > 0);
+    if (!stories.length) list.innerHTML = "";
+  } catch (_) {
+    count.textContent = "Updates";
+    list.innerHTML = "";
+    if (empty) {
+      empty.textContent = "Candidate updates abhi load nahi ho paayi.";
+      empty.classList.remove("hidden");
+    }
+  }
+}
 loadSuccessStories();
