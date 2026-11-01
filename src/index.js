@@ -164,22 +164,30 @@ export default {
         const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), email = cleanText(b.email, 160).toLowerCase(), agency = cleanText(b.agency_name, 160), password = String(b.password || "");
         if (!name || !phone || !email || !agency || password.length < 8 || password.length > 200) return json({ error: "Saari details bharein. Password kam se kam 8 characters ka ho." }, 400, cors);
         if (!/^[0-9+() -]{7,20}$/.test(phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Email ya mobile number check karein." }, 400, cors);
-        const exists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
-        if (!exists.ok) return json({ error: "Agent database setup check karein. schema.sql run hua hai?" }, 502, cors);
-        if ((await exists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
+        const [emailExists, phoneExists] = await Promise.all([
+          db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`),
+          db(env, `agents?select=id&phone=eq.${encodeURIComponent(phone)}&limit=1`)
+        ]);
+        if (!emailExists.ok || !phoneExists.ok) return json({ error: "Agent database setup check karein. schema.sql run hua hai?" }, 502, cors);
+        if ((await emailExists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
+        if ((await phoneExists.json()).length) return json({ error: "Is mobile number se account pehle se hai." }, 409, cors);
         const r = await db(env, "agents", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ full_name: name, phone, email, agency_name: agency, password_hash: await passwordHash(password), status: "pending" }) });
         if (!r.ok) return json({ error: "Registration save nahi hui. Supabase schema check karein." }, 502, cors);
         return json({ ok: true, message: "Registration ho gayi. Admin approval ke baad login kar sakenge." }, 201, cors);
       }
       if (path === "/api/agent/login" && request.method === "POST") {
         if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
-        const b = await request.json(), email = cleanText(b.email, 160).toLowerCase(), password = String(b.password || "");
-        const r = await db(env, `agents?select=id,full_name,email,password_hash,status&email=eq.${encodeURIComponent(email)}&limit=1`);
+        const b = await request.json(), loginId = cleanText(b.login_id || b.email, 160), password = String(b.password || "");
+        if (!loginId || !password) return json({ error: "Registered email ya mobile aur password enter karein." }, 400, cors);
+        const isEmail = loginId.includes("@");
+        const field = isEmail ? "email" : "phone";
+        const identifier = isEmail ? loginId.toLowerCase() : loginId;
+        const r = await db(env, `agents?select=id,full_name,email,phone,password_hash,status&${field}=eq.${encodeURIComponent(identifier)}&limit=1`);
         if (!r.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
         const rows = await r.json();
         if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Email ya password galat hai." }, 401, cors);
         if (rows[0].status !== "approved") return json({ error: rows[0].status === "blocked" ? "Account block hai. Admin se contact karein." : "Account approval pending hai." }, 403, cors);
-        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email } }, 200, cors);
+        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email, phone: rows[0].phone } }, 200, cors);
       }
       if (path.startsWith("/api/agent/")) {
         const identity = await agentIdentity(request, env);
@@ -279,6 +287,23 @@ export default {
         const t = await r.text(); if (!r.ok) return json({ error: "Agents load nahi hue." }, 502, cors);
         return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
       }
+      // Admin-only password reset for an agent whose old hash/password no longer matches.
+      const agentPasswordMatch = path.match(/^\/api\/admin\/agents\/([0-9a-f-]+)\/password$/i);
+      if (agentPasswordMatch && request.method === "POST") {
+        const b = await request.json();
+        const newPassword = String(b.password || "");
+        if (newPassword.length < 8 || newPassword.length > 200) {
+          return json({ error: "Naya password 8 se 200 characters ka hona chahiye." }, 400, cors);
+        }
+        const r = await db(env, `agents?id=eq.${agentPasswordMatch[1]}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({ password_hash: await passwordHash(newPassword) })
+        });
+        if (!r.ok) return json({ error: "Agent password reset nahi hua. Database check karein." }, 502, cors);
+        return json({ ok: true, message: "Agent password reset ho gaya. Ab naye password se login karein." }, 200, cors);
+      }
+
       const agentStatusMatch = path.match(/^\/api\/admin\/agents\/([0-9a-f-]+)$/i);
       if (agentStatusMatch && request.method === "PATCH") {
         const b = await request.json(); if (!["pending", "approved", "blocked"].includes(b.status)) return json({ error: "Status invalid hai." }, 400, cors);
