@@ -1,5 +1,7 @@
+```javascript
 const KEY = "gji_agent_token";
 let token = sessionStorage.getItem(KEY) || "";
+let refreshTimer = null;
 
 const $ = s => document.querySelector(s);
 
@@ -18,15 +20,23 @@ async function api(path, opts = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const r = await fetch(path, { ...opts, headers });
-  const d = await r.json().catch(() => ({}));
+  const response = await fetch(path, {
+    ...opts,
+    headers
+  });
 
-  if (!r.ok) {
-    throw Error(d.error || "Request fail hui.");
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || "Request fail hui.");
   }
 
-  return d;
+  return data;
 }
+
+/* =========================
+   PORTAL LOGIN / DASHBOARD
+========================= */
 
 function showPortal(agent) {
   $("#authArea").classList.add("agent-hidden");
@@ -37,185 +47,276 @@ function showPortal(agent) {
 
   loadJobs();
   loadApps();
+
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+  }
+
+  // Har 30 second mein applications aur selected list refresh hogi.
+  refreshTimer = setInterval(() => {
+    if (
+      token &&
+      !$("#portal").classList.contains("agent-hidden")
+    ) {
+      loadApps(true);
+    }
+  }, 30000);
 }
 
 function logout() {
   token = "";
   sessionStorage.removeItem(KEY);
 
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+  }
+
+  refreshTimer = null;
+
   $("#portal").classList.add("agent-hidden");
   $("#authArea").classList.remove("agent-hidden");
 }
 
+/* =========================
+   AGENT LOGIN
+========================= */
 
-// =====================================
-// AGENT LOGIN
-// EMAIL + PASSWORD OR MOBILE + PASSWORD
-// =====================================
-
-$("#loginForm").addEventListener("submit", async e => {
-  e.preventDefault();
+$("#loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
 
   const msg = $("#loginMsg");
-
   msg.className = "agent-msg";
   msg.textContent = "Login ho raha hai…";
 
   try {
-    const f = new FormData(e.currentTarget);
-
-    // Login input mein email ya mobile number aa sakta hai
+    const form = new FormData(event.currentTarget);
     const identifier = String(
-      f.get("email") ||
-      f.get("phone") ||
-      f.get("identifier") ||
-      ""
+      form.get("identifier") || form.get("email") || ""
     ).trim();
 
-    const password = String(f.get("password") || "");
-
-    if (!identifier || !password) {
-      throw Error("Email/mobile number aur password bharein.");
-    }
-
-    const isEmail = identifier.includes("@");
-
-    const d = await api("/api/agent/login", {
+    const data = await api("/api/agent/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         identifier: identifier,
-        email: isEmail ? identifier : "",
-        phone: isEmail ? "" : identifier,
-        password: password
+        email: identifier,
+        phone: identifier,
+        password: form.get("password")
       })
     });
 
-    if (!d.token) {
-      throw Error("Login token nahi mila. Dobara try karein.");
-    }
-
-    token = d.token;
+    token = data.token;
     sessionStorage.setItem(KEY, token);
 
     msg.textContent = "";
+    showPortal(data.agent);
 
-    showPortal(d.agent);
-
-  } catch (err) {
+  } catch (error) {
     msg.className = "agent-msg error";
-    msg.textContent = err.message;
+    msg.textContent = error.message;
   }
 });
 
+/* =========================
+   AGENT REGISTRATION
+========================= */
 
-// =====================================
-// AGENT REGISTRATION
-// =====================================
+$("#registerForm").addEventListener("submit", async event => {
+  event.preventDefault();
 
-$("#registerForm").addEventListener("submit", async e => {
-  e.preventDefault();
-
+  const form = event.currentTarget;
   const msg = $("#registerMsg");
 
   msg.className = "agent-msg";
   msg.textContent = "Register ho raha hai…";
 
   try {
-    const f = new FormData(e.currentTarget);
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
 
-    const d = await api("/api/agent/register", {
+    if (!String(payload.email || "").trim()) {
+      delete payload.email;
+    }
+
+    const data = await api("/api/agent/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(Object.fromEntries(f.entries()))
+      body: JSON.stringify(payload)
     });
 
     msg.className = "agent-msg success";
-    msg.textContent = d.message;
+    msg.textContent =
+      data.message ||
+      "Registration submit ho gaya. Admin approval ka intezar karein.";
 
-    e.currentTarget.reset();
+    form.reset();
 
-  } catch (err) {
+  } catch (error) {
     msg.className = "agent-msg error";
-    msg.textContent = err.message;
+    msg.textContent = error.message;
   }
 });
 
-
-// =====================================
-// LOAD PUBLISHED JOBS
-// =====================================
+/* =========================
+   LOAD PUBLISHED JOBS
+========================= */
 
 async function loadJobs() {
+  const select = $("#jobSelect");
+
   try {
-    const jobs = await api("/api/jobs");
+    const result = await api("/api/jobs");
+    const jobs = Array.isArray(result)
+      ? result
+      : Array.isArray(result.jobs)
+        ? result.jobs
+        : [];
 
-    $("#jobSelect").innerHTML =
+    select.innerHTML =
       '<option value="">Select published job</option>' +
-      jobs.map(j =>
-        `<option value="${esc(j.id)}">${esc(j.title)} — ${esc(j.country)}</option>`
-      ).join("");
+      jobs.map(job => `
+        <option value="${esc(job.id)}">
+          ${esc(job.title)} — ${esc(job.country)}
+        </option>
+      `).join("");
 
-  } catch (e) {
-    $("#jobSelect").innerHTML =
+  } catch (error) {
+    select.innerHTML =
       '<option value="">Jobs load nahi hue</option>';
   }
 }
 
+/* =========================
+   APPLICATION TABLE ROW
+========================= */
 
-// =====================================
-// LOAD AGENT APPLICATIONS
-// =====================================
+function appRow(application) {
+  const status = String(
+    application.status || "new"
+  ).trim().toLowerCase();
 
-async function loadApps() {
-  const tbody = $("#myApps");
+  const date = application.created_at
+    ? new Date(application.created_at).toLocaleDateString("en-IN")
+    : "—";
 
-  tbody.innerHTML =
-    '<tr><td colspan="3">Loading…</td></tr>';
+  return `
+    <tr>
+      <td>
+        <strong>${esc(application.candidate_name)}</strong>
+        <br>
+        ${esc(application.jobs?.title || "Job")}
+      </td>
+
+      <td>${esc(date)}</td>
+
+      <td>
+        <span class="agent-status ${esc(status)}">
+          ${esc(status)}
+        </span>
+      </td>
+    </tr>
+  `;
+}
+
+/* =========================
+   LOAD ALL + SELECTED LIST
+========================= */
+
+async function loadApps(silent = false) {
+  const allBody = $("#myApps");
+  const selectedBody = $("#selectedApps");
+  const selectedCount = $("#selectedCount");
+  const message = $("#appsMsg");
+
+  if (!allBody || !selectedBody) {
+    console.error(
+      "Agent applications table IDs missing. Check agent.html."
+    );
+    return;
+  }
+
+  if (!silent) {
+    allBody.innerHTML =
+      '<tr><td colspan="3">Loading applications…</td></tr>';
+
+    selectedBody.innerHTML =
+      '<tr><td colspan="3">Loading selected candidates…</td></tr>';
+  }
 
   try {
-    const apps = await api("/api/agent/applications");
+    const result = await api("/api/agent/applications");
 
-    tbody.innerHTML = apps.length
-      ? apps.map(a => `
-          <tr>
-            <td>
-              <strong>${esc(a.candidate_name)}</strong>
-              <br>
-              ${esc(a.jobs?.title || "Job")}
-            </td>
-            <td>
-              ${new Date(a.created_at).toLocaleDateString()}
-            </td>
-            <td>${esc(a.status)}</td>
-          </tr>
-        `).join("")
+    const applications = Array.isArray(result)
+      ? result
+      : Array.isArray(result.applications)
+        ? result.applications
+        : [];
+
+    // Sabhi submitted candidates
+    allBody.innerHTML = applications.length
+      ? applications.map(appRow).join("")
       : '<tr><td colspan="3">Abhi koi application nahi.</td></tr>';
 
-  } catch (e) {
-    tbody.innerHTML =
-      `<tr><td colspan="3">${esc(e.message)}</td></tr>`;
+    // Sirf selected status wale candidates
+    const selected = applications.filter(application =>
+      String(application.status || "")
+        .trim()
+        .toLowerCase() === "selected"
+    );
+
+    if (selectedCount) {
+      selectedCount.textContent = String(selected.length);
+    }
+
+    selectedBody.innerHTML = selected.length
+      ? selected.map(appRow).join("")
+      : '<tr><td colspan="3">Abhi koi selected candidate nahi hai.</td></tr>';
+
+    if (message) {
+      message.className = "agent-msg";
+      message.textContent =
+        `Last updated: ${new Date().toLocaleTimeString("en-IN")}`;
+    }
+
+  } catch (error) {
+    if (!silent) {
+      allBody.innerHTML =
+        `<tr><td colspan="3">${esc(error.message)}</td></tr>`;
+
+      selectedBody.innerHTML =
+        `<tr><td colspan="3">${esc(error.message)}</td></tr>`;
+
+      if (selectedCount) {
+        selectedCount.textContent = "0";
+      }
+    }
+
+    if (message) {
+      message.className = "agent-msg error";
+      message.textContent = error.message;
+    }
+
+    console.error("Applications load error:", error);
   }
 }
 
+/* =========================
+   SUBMIT CANDIDATE
+========================= */
 
-// =====================================
-// SUBMIT CANDIDATE APPLICATION
-// =====================================
+$("#applicationForm").addEventListener("submit", async event => {
+  event.preventDefault();
 
-$("#applicationForm").addEventListener("submit", async e => {
-  e.preventDefault();
-
-  const form = e.currentTarget;
-  const msg = $("#applicationMsg");
-  const btn = $("#submitBtn");
+  const form = event.currentTarget;
+  const message = $("#applicationMsg");
+  const button = $("#submitBtn");
   const file = form.elements.document.files[0];
 
-  msg.className = "agent-msg";
+  message.className = "agent-msg";
 
   if (
     !file ||
@@ -225,52 +326,56 @@ $("#applicationForm").addEventListener("submit", async e => {
       !file.name.toLowerCase().endsWith(".pdf")
     )
   ) {
-    msg.className = "agent-msg error";
-    msg.textContent =
+    message.className = "agent-msg error";
+    message.textContent =
       "Valid PDF select karein (maximum 10 MB).";
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = "Submitting…";
+  button.disabled = true;
+  button.textContent = "Submitting…";
 
   try {
-    const d = await api("/api/agent/applications", {
+    const data = await api("/api/agent/applications", {
       method: "POST",
       body: new FormData(form)
     });
 
-    msg.className = "agent-msg success";
-    msg.textContent = d.message;
+    message.className = "agent-msg success";
+    message.textContent =
+      data.message || "Application submit ho gayi.";
 
     form.reset();
 
-    loadApps();
+    await loadApps();
 
-  } catch (err) {
-    msg.className = "agent-msg error";
-    msg.textContent = err.message;
+  } catch (error) {
+    message.className = "agent-msg error";
+    message.textContent = error.message;
 
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Submit Application";
+    button.disabled = false;
+    button.textContent = "Submit Application";
   }
 });
 
+/* =========================
+   REFRESH / LOGOUT
+========================= */
 
-// =====================================
-// BUTTON EVENTS
-// =====================================
-
-$("#refreshApps").addEventListener("click", loadApps);
+$("#refreshApps").addEventListener("click", () => {
+  loadApps();
+});
 
 $("#logout").addEventListener("click", logout);
 
-
-// =====================================
-// RESTORE EXISTING SESSION
-// =====================================
+/* =========================
+   RESTORE EXISTING SESSION
+========================= */
 
 if (token) {
-  showPortal({ full_name: "Agent" });
+  showPortal({
+    full_name: "Agent"
+  });
 }
+```
