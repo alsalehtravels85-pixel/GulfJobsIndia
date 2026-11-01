@@ -30,215 +30,89 @@ body{background:#fbfdfb;letter-spacing:-.08px}
 .admin-page{background:linear-gradient(135deg,#f1f8f4,#f8fbf9)}.admin-header{background:linear-gradient(115deg,#043b2c,#087454);box-shadow:0 8px 26px #064e3b20}.admin-main{padding-top:38px}.admin-tabs{gap:8px;flex-wrap:wrap}.admin-tabs button{border-radius:12px;padding:12px 16px}.admin-card{border-radius:20px;padding:26px;box-shadow:0 12px 34px rgba(6,78,59,.055)}.admin-card-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}.admin-card-heading h3{margin:7px 0 0}.admin-card-actions{display:flex;gap:9px;flex-wrap:wrap}.admin-help{font-size:12px;color:var(--muted);line-height:1.7;margin:12px 0 22px}.admin-table th{background:#edf6f0;color:#294d3c;font-size:11px;text-transform:uppercase;letter-spacing:.5px}.admin-table td{padding:14px 12px}.admin-table tbody tr:hover{background:#fbfefc}.admin-card input,.admin-card select,.admin-card textarea{border-radius:10px}.admin-message{line-height:1.6}
 @media(max-width:760px){.hero{padding:60px 0 76px}.hero-grid{gap:32px}.hero h1{font-size:clamp(40px,11vw,54px);letter-spacing:-2.3px}.hero p{font-size:15px}.section{padding:58px 0}.search-box{padding:18px}.country-grid{gap:10px}.country-card{min-height:136px;padding:16px 13px}.job-card{padding:19px}.success-grid{grid-template-columns:1fr}.success-card{padding:18px}.form-card{padding:21px}.admin-card{padding:19px}.admin-card-heading{align-items:flex-start;flex-direction:column}.admin-card-actions{width:100%}.admin-card-actions .btn{flex:1}.admin-table{min-width:620px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-/* ===== GULFJOBSINDIA: 4 VACANCIES PER ROW ===== */
 
-@media (min-width: 1100px) {
-  .job-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 13px;
+/* ===== GulfJobsIndia layout fix: desktop 4 cards, compact footer, motion ===== */
+@media screen and (min-width: 1100px) {
+  body .jobs-section .container .job-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    align-items: stretch;
   }
-
-  .job-card {
+  body .jobs-section .container .job-grid > .job-card {
     min-width: 0;
-    padding: 16px;
-    border-radius: 16px;
+    padding: 15px;
+    border-radius: 15px;
   }
-
-  .job-card h3 {
+  body .jobs-section .container .job-grid > .job-card h3 {
     font-size: 16px;
     line-height: 1.35;
     overflow-wrap: anywhere;
   }
-
-  .job-company {
+  body .jobs-section .container .job-grid > .job-card .job-company,
+  body .jobs-section .container .job-grid > .job-card .job-description {
     overflow-wrap: anywhere;
   }
-
-  .job-country {
+  body .jobs-section .container .job-grid > .job-card .job-country {
     white-space: normal;
     text-align: center;
   }
-
-  .job-meta {
-    gap: 6px;
-    margin: 12px 0;
+  body .jobs-section .container .job-grid > .job-card .job-meta {
+    gap: 5px;
+    margin: 11px 0;
   }
-
-  .job-meta span {
-    padding: 5px 7px;
+  body .jobs-section .container .job-grid > .job-card .job-meta span {
+    padding: 5px 6px;
     font-size: 10px;
   }
-
-  .job-description {
-    font-size: 12px;
-  }
-
-  .job-actions {
+  body .jobs-section .container .job-grid > .job-card .job-actions {
     gap: 6px;
-    margin-top: 13px;
-    padding-top: 12px;
   }
-
-  .job-actions .btn {
-    padding: 10px 6px;
-    font-size: 11px;
+  body .jobs-section .container .job-grid > .job-card .job-actions .btn {
+    padding: 9px 5px;
+    font-size: 10px;
   }
 }
 
-/* Tablet: 2 vacancies per row */
-@media (min-width: 761px) and (max-width: 1099px) {
-  .job-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media screen and (min-width: 761px) and (max-width: 1099px) {
+  body .jobs-section .container .job-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media screen and (max-width: 760px) {
+  body .jobs-section .container .job-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
-/* Mobile: 1 vacancy per row */
-@media (max-width: 760px) {
-  .job-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
+/* Slim footer on desktop and mobile */
+body .site-footer { padding: 13px 0 !important; }
+body .site-footer .footer-row { gap: 9px 16px; }
+body .site-footer .footer-brand { font-size: 15px; }
+body .site-footer .footer-brand .brand-mark { width: 32px; height: 32px; border-radius: 9px; font-size: 12px; }
+body .site-footer .footer-brand small { font-size: 9px; margin-top: 2px; }
+body .site-footer .footer-row > div { gap: 12px; font-size: 10px; }
+body .site-footer .footer-row p { width: auto; margin: 0 0 0 auto; padding: 0; border-top: 0; font-size: 9px; }
+@media screen and (max-width: 760px) {
+  body .site-footer { padding: 14px 0 !important; }
+  body .site-footer .footer-row { gap: 10px; }
+  body .site-footer .footer-row > div { margin-left: 0; gap: 8px 12px; flex-wrap: wrap; }
+  body .site-footer .footer-row p { width: 100%; margin: 0; padding-top: 8px; border-top: 1px solid #ffffff20; }
 }
 
-/* ===== COMPACT FOOTER ===== */
-
-.site-footer {
-  padding: 14px 0;
+/* Small, smooth entrance and hover animations */
+@keyframes gjiCardEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.footer-row {
-  gap: 10px 18px;
-}
-
-.footer-brand {
-  font-size: 15px;
-  gap: 8px;
-}
-
-.footer-brand .brand-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-.footer-brand small {
-  font-size: 9px;
-  margin-top: 3px;
-}
-
-.footer-row > div {
-  gap: 12px;
-  font-size: 10px;
-}
-
-.footer-row p {
-  width: auto;
-  margin: 0 0 0 auto;
-  padding: 0;
-  border-top: 0;
-  font-size: 9px;
-}
-
-@media (max-width: 760px) {
-  .site-footer {
-    padding: 16px 0;
-  }
-
-  .footer-row {
-    gap: 12px;
-  }
-
-  .footer-row > div {
-    gap: 10px 14px;
-  }
-
-  .footer-row p {
-    width: 100%;
-    margin: 0;
-    padding-top: 10px;
-    border-top: 1px solid #ffffff20;
-  }
-}
-
-/* ===== SMOOTH ANIMATIONS ===== */
-
-@keyframes gjFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.job-card {
-  animation: gjFadeUp 0.45s ease both;
-}
-
-.job-card:nth-child(4n + 2) {
-  animation-delay: 0.04s;
-}
-
-.job-card:nth-child(4n + 3) {
-  animation-delay: 0.08s;
-}
-
-.job-card:nth-child(4n + 4) {
-  animation-delay: 0.12s;
-}
-
-.country-card,
-.success-card,
-.step {
-  transition:
-    transform 0.24s ease,
-    box-shadow 0.24s ease,
-    border-color 0.24s ease;
-}
-
-.country-card:hover,
-.success-card:hover,
-.step:hover {
-  transform: translateY(-3px);
-}
-
-.btn,
-.floating-whatsapp {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.btn:hover,
-.floating-whatsapp:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(6, 78, 59, 0.16);
-}
-
-/* Respect reduced-motion settings */
+body .jobs-section .job-grid > .job-card { animation: gjiCardEnter .35s ease both; }
+body .jobs-section .job-grid > .job-card:nth-child(4n+2) { animation-delay: .04s; }
+body .jobs-section .job-grid > .job-card:nth-child(4n+3) { animation-delay: .08s; }
+body .jobs-section .job-grid > .job-card:nth-child(4n+4) { animation-delay: .12s; }
+body .country-card, body .success-card, body .step { transition: transform .22s ease, box-shadow .22s ease; }
+body .country-card:hover, body .success-card:hover, body .step:hover { transform: translateY(-3px); }
 @media (prefers-reduced-motion: reduce) {
-  .job-card,
-  .job-card:nth-child(n) {
-    animation: none !important;
-  }
-
-  .country-card,
-  .success-card,
-  .step,
-  .btn,
-  .floating-whatsapp {
-    transition: none !important;
-  }
-
-  .country-card:hover,
-  .success-card:hover,
-  .step:hover,
-  .btn:hover,
-  .floating-whatsapp:hover {
-    transform: none;
-  }
+  body .jobs-section .job-grid > .job-card { animation: none !important; }
+  body .country-card, body .success-card, body .step { transition: none !important; }
+  body .country-card:hover, body .success-card:hover, body .step:hover { transform: none; }
 }
