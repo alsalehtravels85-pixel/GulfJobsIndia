@@ -87,16 +87,35 @@ document.getElementById("applicationForm")?.addEventListener("submit", async e =
 loadJobs();
 
 
-async function loadSuccessStories(){
-  const list=document.getElementById("successStoryList"), empty=document.getElementById("noStories"), count=document.getElementById("storyCount");
-  if(!list)return;
-  try{
-    const r=await fetch("/api/success-stories",{headers:{Accept:"application/json"}});
-    if(!r.ok)throw new Error("Stories load nahi hui");
-    const stories=await r.json();
-    if(count)count.textContent=`${stories.length} verified ${stories.length===1?"story":"stories"}`;
-    list.innerHTML=stories.length?stories.map(st=>`<article class="story-card"><div class="story-card-top"><span class="story-badge">✓ Verified experience</span><span class="story-country">${escapeHtml(st.country||"Gulf")}</span></div><h3>${escapeHtml(st.story_title)}</h3><p class="story-person">${escapeHtml(st.candidate_display_name)} · ${escapeHtml(st.job_title)}</p><div class="story-text">${escapeHtml(st.story_text)}</div>${st.outcome?`<div class="story-outcome">Outcome: ${escapeHtml(st.outcome)}</div>`:""}</article>`).join(""):'<div class="empty-state story-empty">Abhi verified success story publish nahi hui hai.</div>';
-    if(empty)empty.classList.toggle("hidden",stories.length>0);
-  }catch(e){list.innerHTML='<div class="empty-state story-empty">Success stories abhi load nahi ho pa rahi hain.</div>';if(count)count.textContent="Verified stories";}
+async function loadSuccessStories() {
+  const list = document.querySelector("#successStories");
+  const count = document.querySelector("#storyCount");
+  const empty = document.querySelector("#noStories");
+  if (!list) return;
+  try {
+    const response = await fetch("/api/success-stories");
+    if (!response.ok) throw new Error("Stories unavailable");
+    const stories = await response.json();
+    count.textContent = `${stories.length} selected`;
+    list.innerHTML = stories.length ? stories.map(story => `
+      <article class="success-card">
+        <div class="success-avatar" aria-hidden="true">${escapeHtml((story.candidate_name || "C").trim().charAt(0).toUpperCase())}</div>
+        <div class="success-card-body">
+          <span class="success-badge">✓ Selected</span>
+          <h3>${escapeHtml(story.candidate_name || "Candidate")}</h3>
+          <p class="success-job">${escapeHtml(story.job_title || "Gulf Job")}</p>
+          <p class="success-country">${escapeHtml(story.country || "Gulf")}</p>
+        </div>
+      </article>`).join("") : "";
+    empty?.classList.toggle("hidden", stories.length > 0);
+    if (!stories.length) list.innerHTML = "";
+  } catch (_) {
+    count.textContent = "Updates";
+    list.innerHTML = "";
+    if (empty) {
+      empty.textContent = "Candidate updates abhi load nahi ho paayi.";
+      empty.classList.remove("hidden");
+    }
+  }
 }
 loadSuccessStories();

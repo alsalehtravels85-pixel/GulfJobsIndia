@@ -15,12 +15,12 @@ async function api(path, options = {}) {
 function showDashboard() { $("#loginPanel").classList.add("hidden"); $("#dashboard").classList.remove("hidden"); loadJobs(); }
 function logout() { token = ""; sessionStorage.removeItem(TOKEN_KEY); $("#dashboard").classList.add("hidden"); $("#loginPanel").classList.remove("hidden"); }
 $("#loginForm").addEventListener("submit", async e => {
-  e.preventDefault(); const form = e.currentTarget; const msg = $("#loginMessage"), btn = $("#loginBtn");
+  e.preventDefault(); const msg = $("#loginMessage"), btn = $("#loginBtn");
   msg.textContent = ""; btn.disabled = true; btn.textContent = "Checking…";
   try {
-    const password = new FormData(form).get("password");
+    const password = new FormData(e.currentTarget).get("password");
     const data = await api("/api/admin/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password}) });
-    token = data.token; sessionStorage.setItem(TOKEN_KEY, token); form.reset(); showDashboard();
+    token = data.token; sessionStorage.setItem(TOKEN_KEY, token); e.currentTarget.reset(); showDashboard();
   } catch(err) { msg.textContent = err.message; msg.className = "admin-message error"; }
   finally { btn.disabled = false; btn.textContent = "Login"; }
 });
@@ -98,19 +98,44 @@ async function loadAgents(){const rows=$("#agentsRows");rows.innerHTML='<tr><td 
 $("#agentsRows")?.addEventListener("change",async e=>{const sel=e.target.closest("[data-agent-status]");if(!sel)return;try{await api(`/api/admin/agents/${sel.dataset.agentStatus}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:sel.value})});$("#agentsMessage").textContent="Agent status update ho gaya."}catch(err){$("#agentsMessage").textContent=err.message;loadAgents()}});
 
 
-const storyForm = document.querySelector("#storyForm");
-storyForm?.addEventListener("submit", async e => {
-  e.preventDefault(); const form=e.currentTarget, msg=$("#storyMessage"), btn=$("#saveStoryBtn");
-  const fd=new FormData(form), body=Object.fromEntries(fd.entries());
-  for(const k of ["candidate_consent","employer_consent","verified"]) body[k]=fd.get(k)==="true";
-  msg.className="admin-message";msg.textContent="Saving…";btn.disabled=true;
-  try{const data=await api("/api/admin/success-stories",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});msg.className="admin-message success";msg.textContent=data.message||"Story save ho gayi.";form.reset();await loadStories();}
-  catch(err){msg.className="admin-message error";msg.textContent=err.message;}finally{btn.disabled=false;}
-});
-async function loadStories(){
- const rows=$("#storiesRows");if(!rows)return;rows.innerHTML='<tr><td colspan="4">Loading…</td></tr>';
- try{const stories=await api("/api/admin/success-stories");rows.innerHTML=stories.length?stories.map(st=>`<tr><td><strong>${esc(st.story_title)}</strong><br>${esc(st.candidate_display_name)} · ${esc(st.job_title)}<br><small>${esc(st.country)}</small></td><td>Candidate: ${st.candidate_consent?"Yes":"No"}<br>Employer: ${st.employer_consent?"Yes":"No"}<br>Verified: ${st.verified?"Yes":"No"}<br><small>${esc(st.verification_note||"")}</small></td><td><select class="story-status" data-story-status="${esc(st.id)}"><option value="draft" ${st.status==="draft"?"selected":""}>Draft</option><option value="published" ${st.status==="published"?"selected":""}>Published</option><option value="hidden" ${st.status==="hidden"?"selected":""}>Hidden</option></select></td><td><button class="small-btn danger" data-story-delete="${esc(st.id)}">Delete</button></td></tr>`).join(""):'<tr><td colspan="4">Abhi stories nahi hain.</td></tr>';
- }catch(err){rows.innerHTML=`<tr><td colspan="4">${esc(err.message)}</td></tr>`;}
+async function loadStories() {
+  const rows = $("#storiesRows");
+  if (!rows) return;
+  rows.innerHTML = '<tr><td colspan="4">Loading…</td></tr>';
+  try {
+    const stories = await api("/api/admin/success-stories");
+    rows.innerHTML = stories.length ? stories.map(s => `<tr>
+      <td><strong>${esc(s.candidate_name)}</strong><br><small>${esc(s.job_title)} · ${esc(s.country)}</small></td>
+      <td>${new Date(s.created_at).toLocaleDateString()}</td>
+      <td><span class="pill">${esc(s.status)}</span></td>
+      <td><select data-story-status="${esc(s.id)}" aria-label="Success story status">
+        <option value="published" ${s.status === "published" ? "selected" : ""}>Published</option>
+        <option value="draft" ${s.status === "draft" ? "selected" : ""}>Draft</option>
+      </select></td>
+    </tr>`).join("") : '<tr><td colspan="4">Abhi koi selected candidate story nahi hai. Applications mein candidate ko Selected karein.</td></tr>';
+  } catch (err) {
+    rows.innerHTML = `<tr><td colspan="4">${esc(err.message)}</td></tr>`;
+  }
 }
-$("#storiesRows")?.addEventListener("change",async e=>{const sel=e.target.closest("[data-story-status]");if(!sel)return;try{await api(`/api/admin/success-stories/${sel.dataset.storyStatus}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:sel.value})});await loadStories();}catch(err){alert(err.message);loadStories();}});
-$("#storiesRows")?.addEventListener("click",async e=>{const btn=e.target.closest("[data-story-delete]");if(!btn||!confirm("Is success story ko delete karna hai?"))return;try{await api(`/api/admin/success-stories/${btn.dataset.storyDelete}`,{method:"DELETE"});await loadStories();}catch(err){alert(err.message);}});
+$("#storiesRows")?.addEventListener("change", async e => {
+  const sel = e.target.closest("[data-story-status]");
+  if (!sel) return;
+  sel.disabled = true;
+  try {
+    await api(`/api/admin/success-stories/${sel.dataset.storyStatus}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: sel.value })
+    });
+    const msg = $("#storiesMessage");
+    msg.className = "admin-message success";
+    msg.textContent = `Story ${sel.value === "published" ? "publish" : "draft"} ho gayi.`;
+  } catch (err) {
+    const msg = $("#storiesMessage");
+    msg.className = "admin-message error";
+    msg.textContent = err.message;
+    loadStories();
+  } finally {
+    sel.disabled = false;
+  }
+});
