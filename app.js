@@ -109,11 +109,12 @@ async function loadSuccessStories() {
       </article>`).join("") : "";
     empty?.classList.toggle("hidden", stories.length > 0);
     if (!stories.length) list.innerHTML = "";
-  } catch (_) {
-    count.textContent = "Updates";
+  } catch (err) {
+    console.error("GulfJobsIndia success stories failed to load:", err);
+    count.textContent = "Updates unavailable";
     list.innerHTML = "";
     if (empty) {
-      empty.textContent = "Candidate updates abhi load nahi ho paayi.";
+      empty.textContent = "Candidate updates filhaal load nahi ho paayi. Kripya thodi der baad dobara check karein.";
       empty.classList.remove("hidden");
     }
   }

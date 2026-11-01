@@ -139,3 +139,25 @@ $("#storiesRows")?.addEventListener("change", async e => {
     sel.disabled = false;
   }
 });
+
+const syncStoriesBtn = document.querySelector("#syncStoriesBtn");
+syncStoriesBtn?.addEventListener("click", async () => {
+  const msg = $("#storiesMessage");
+  syncStoriesBtn.disabled = true;
+  syncStoriesBtn.textContent = "Syncing…";
+  msg.className = "admin-message";
+  msg.textContent = "Selected candidates check ho rahe hain…";
+  try {
+    const result = await api("/api/admin/success-stories/sync", { method: "POST" });
+    msg.className = "admin-message success";
+    msg.textContent = result.message || "Selected candidates sync ho gaye.";
+    await loadStories();
+  } catch (err) {
+    msg.className = "admin-message error";
+    msg.textContent = err.message;
+  } finally {
+    syncStoriesBtn.disabled = false;
+    syncStoriesBtn.textContent = "Sync Selected Candidates";
+  }
+});
+$("#refreshStoriesBtn")?.addEventListener("click", loadStories);

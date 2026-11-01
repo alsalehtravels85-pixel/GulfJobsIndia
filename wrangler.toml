@@ -1,12 +1,13 @@
 name = "gulfjobsindia"
-main = "index.js"
+main = "src/index.js"
 compatibility_date = "2026-10-31"
 
 [assets]
-directory = "./"
+directory = "./public"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 [vars]
 WHATSAPP_NUMBER = "918576850306"
+# After deployment, set ALLOWED_ORIGIN to your actual website origin, e.g. https://gulfjobsindia.your-subdomain.workers.dev
 ALLOWED_ORIGIN = "*"
