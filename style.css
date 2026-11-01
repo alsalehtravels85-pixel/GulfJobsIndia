@@ -30,3 +30,215 @@ body{background:#fbfdfb;letter-spacing:-.08px}
 .admin-page{background:linear-gradient(135deg,#f1f8f4,#f8fbf9)}.admin-header{background:linear-gradient(115deg,#043b2c,#087454);box-shadow:0 8px 26px #064e3b20}.admin-main{padding-top:38px}.admin-tabs{gap:8px;flex-wrap:wrap}.admin-tabs button{border-radius:12px;padding:12px 16px}.admin-card{border-radius:20px;padding:26px;box-shadow:0 12px 34px rgba(6,78,59,.055)}.admin-card-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}.admin-card-heading h3{margin:7px 0 0}.admin-card-actions{display:flex;gap:9px;flex-wrap:wrap}.admin-help{font-size:12px;color:var(--muted);line-height:1.7;margin:12px 0 22px}.admin-table th{background:#edf6f0;color:#294d3c;font-size:11px;text-transform:uppercase;letter-spacing:.5px}.admin-table td{padding:14px 12px}.admin-table tbody tr:hover{background:#fbfefc}.admin-card input,.admin-card select,.admin-card textarea{border-radius:10px}.admin-message{line-height:1.6}
 @media(max-width:760px){.hero{padding:60px 0 76px}.hero-grid{gap:32px}.hero h1{font-size:clamp(40px,11vw,54px);letter-spacing:-2.3px}.hero p{font-size:15px}.section{padding:58px 0}.search-box{padding:18px}.country-grid{gap:10px}.country-card{min-height:136px;padding:16px 13px}.job-card{padding:19px}.success-grid{grid-template-columns:1fr}.success-card{padding:18px}.form-card{padding:21px}.admin-card{padding:19px}.admin-card-heading{align-items:flex-start;flex-direction:column}.admin-card-actions{width:100%}.admin-card-actions .btn{flex:1}.admin-table{min-width:620px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* ===== GULFJOBSINDIA: 4 VACANCIES PER ROW ===== */
+
+@media (min-width: 1100px) {
+  .job-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+  }
+
+  .job-card {
+    min-width: 0;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .job-card h3 {
+    font-size: 16px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .job-company {
+    overflow-wrap: anywhere;
+  }
+
+  .job-country {
+    white-space: normal;
+    text-align: center;
+  }
+
+  .job-meta {
+    gap: 6px;
+    margin: 12px 0;
+  }
+
+  .job-meta span {
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+
+  .job-description {
+    font-size: 12px;
+  }
+
+  .job-actions {
+    gap: 6px;
+    margin-top: 13px;
+    padding-top: 12px;
+  }
+
+  .job-actions .btn {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+}
+
+/* Tablet: 2 vacancies per row */
+@media (min-width: 761px) and (max-width: 1099px) {
+  .job-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile: 1 vacancy per row */
+@media (max-width: 760px) {
+  .job-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ===== COMPACT FOOTER ===== */
+
+.site-footer {
+  padding: 14px 0;
+}
+
+.footer-row {
+  gap: 10px 18px;
+}
+
+.footer-brand {
+  font-size: 15px;
+  gap: 8px;
+}
+
+.footer-brand .brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.footer-brand small {
+  font-size: 9px;
+  margin-top: 3px;
+}
+
+.footer-row > div {
+  gap: 12px;
+  font-size: 10px;
+}
+
+.footer-row p {
+  width: auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border-top: 0;
+  font-size: 9px;
+}
+
+@media (max-width: 760px) {
+  .site-footer {
+    padding: 16px 0;
+  }
+
+  .footer-row {
+    gap: 12px;
+  }
+
+  .footer-row > div {
+    gap: 10px 14px;
+  }
+
+  .footer-row p {
+    width: 100%;
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid #ffffff20;
+  }
+}
+
+/* ===== SMOOTH ANIMATIONS ===== */
+
+@keyframes gjFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.job-card {
+  animation: gjFadeUp 0.45s ease both;
+}
+
+.job-card:nth-child(4n + 2) {
+  animation-delay: 0.04s;
+}
+
+.job-card:nth-child(4n + 3) {
+  animation-delay: 0.08s;
+}
+
+.job-card:nth-child(4n + 4) {
+  animation-delay: 0.12s;
+}
+
+.country-card,
+.success-card,
+.step {
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.country-card:hover,
+.success-card:hover,
+.step:hover {
+  transform: translateY(-3px);
+}
+
+.btn,
+.floating-whatsapp {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.btn:hover,
+.floating-whatsapp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(6, 78, 59, 0.16);
+}
+
+/* Respect reduced-motion settings */
+@media (prefers-reduced-motion: reduce) {
+  .job-card,
+  .job-card:nth-child(n) {
+    animation: none !important;
+  }
+
+  .country-card,
+  .success-card,
+  .step,
+  .btn,
+  .floating-whatsapp {
+    transition: none !important;
+  }
+
+  .country-card:hover,
+  .success-card:hover,
+  .step:hover,
+  .btn:hover,
+  .floating-whatsapp:hover {
+    transform: none;
+  }
+}
