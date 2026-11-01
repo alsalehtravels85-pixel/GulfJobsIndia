@@ -161,3 +161,99 @@ syncStoriesBtn?.addEventListener("click", async () => {
   }
 });
 $("#refreshStoriesBtn")?.addEventListener("click", loadStories);
+
+// Job JSON import: adds a small import control without changing admin.html.
+(function addJobFileImport() {
+  const form = document.querySelector('#jobForm');
+  if (!form || document.querySelector('#jobJsonImport')) return;
+  const box = document.createElement('div');
+  box.id = 'jobJsonImport';
+  box.className = 'admin-card';
+  box.style.cssText = 'margin:12px 0;padding:14px;border:1px dashed var(--line);';
+  box.innerHTML = `
+    <h4 style="margin:0 0 8px">📁 Import Job File</h4>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 10px">Apni JSON job file select karein. Fields automatic fill hongi; phir details check karke Save Job karein.</p>
+    <input id="jobJsonFile" type="file" accept=".json,application/json" aria-label="Import job JSON file">
+    <p id="jobJsonImportMessage" class="admin-message" role="status"></p>`;
+  const heading = form.querySelector('#jobFormTitle');
+  if (heading) heading.insertAdjacentElement('afterend', box);
+  else form.prepend(box);
+
+  const setField = (name, value) => {
+    const field = form.elements[name];
+    if (!field || value === undefined || value === null) return;
+    field.value = String(value);
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  const message = (text, ok = false) => {
+    const el = document.querySelector('#jobJsonImportMessage');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `admin-message ${ok ? 'success' : 'error'}`;
+  };
+
+  document.querySelector('#jobJsonFile').addEventListener('change', async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+      if (file.size > 1024 * 1024) throw new Error('File 1 MB se chhoti honi chahiye.');
+      const parsed = JSON.parse(await file.text());
+      const job = parsed.job && typeof parsed.job === 'object' ? parsed.job : parsed;
+      if (!job || typeof job !== 'object' || Array.isArray(job)) throw new Error('JSON file ka format sahi nahi hai.');
+      const aliases = {
+        title: ['title', 'job_title', 'jobTitle'],
+        company_name: ['company_name', 'company', 'employer', 'companyName'],
+        country: ['country'],
+        city: ['city'],
+        salary: ['salary', 'salary_package', 'salaryPackage'],
+        vacancies: ['vacancies', 'total_vacancies', 'totalVacancies'],
+        qualification: ['qualification', 'education'],
+        experience: ['experience'],
+        benefits: ['benefits', 'duty_hours_benefits', 'dutyHoursBenefits', 'working_hours'],
+        description: ['description', 'short_description', 'shortDescription'],
+        eligibility: ['eligibility', 'additional_requirements', 'additionalRequirements'],
+        last_date: ['last_date', 'lastDate'],
+        job_type: ['job_type', 'jobType'],
+        status: ['status']
+      };
+      let filled = 0;
+      for (const [field, keys] of Object.entries(aliases)) {
+        let value;
+        for (const key of keys) if (job[key] !== undefined && job[key] !== null) { value = job[key]; break; }
+        if (value === undefined) continue;
+        if (field === 'country') {
+          const normalized = String(value).trim();
+          const select = form.elements.country;
+          const match = [...select.options].find(o => o.value.toLowerCase() === normalized.toLowerCase() || o.textContent.trim().toLowerCase() === normalized.toLowerCase());
+          if (match) { setField(field, match.value); filled++; }
+          continue;
+        }
+        if (field === 'job_type') {
+          const normalized = String(value).trim().toLowerCase();
+          const match = [...form.elements.job_type.options].find(o => o.value.toLowerCase() === normalized || o.textContent.trim().toLowerCase() === normalized);
+          if (match) { setField(field, match.value); filled++; }
+          continue;
+        }
+        if (field === 'status') {
+          const normalized = String(value).trim().toLowerCase();
+          if (['draft', 'published', 'closed'].includes(normalized)) { setField(field, normalized); filled++; }
+          continue;
+        }
+        setField(field, value);
+        filled++;
+      }
+      if (!job.status) setField('status', 'draft');
+      setField('id', '');
+      document.querySelector('#jobFormTitle').textContent = 'Add a Gulf Job (Imported)';
+      document.querySelector('#saveJobBtn').textContent = 'Save Job';
+      document.querySelector('#cancelEditBtn').classList.add('hidden');
+      message(`File read ho gayi. ${filled} fields fill hui hain. Details check karke Save Job dabayein.`, true);
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      message(err.message || 'File read nahi ho saki. Valid JSON file select karein.');
+    } finally {
+      event.target.value = '';
+    }
+  });
+})();
