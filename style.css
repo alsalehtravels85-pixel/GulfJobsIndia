@@ -185,3 +185,501 @@ body { overflow-x: hidden; }
   .hero::after { right: 2%; bottom: 4%; font-size: 95px; }
   .footer-access { width: 100%; }
 }
+?variant="standard" id="58314" title="GulfJobsIndia Premium Design CSS"}
+```css
+/* ===== GULFJOBSINDIA PREMIUM DESIGN UPDATE ===== */
+
+:root {
+  --saffron: #ff9933;
+  --india-green: #138808;
+  --premium-gold: #f4ce72;
+  --premium-dark: #031f19;
+}
+
+/* Header and login buttons */
+.site-header {
+  background: rgba(255,255,255,.97);
+  border-bottom: 1px solid #dce9e0;
+  box-shadow: 0 5px 24px rgba(0,40,25,.05);
+}
+
+.nav {
+  gap: 16px;
+}
+
+.nav-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 1px solid #dce9e0;
+  transition: .2s ease;
+}
+
+.nav-agent {
+  color: #07543d;
+  background: #edf7f0;
+}
+
+.nav-agent:hover {
+  background: #dcefe3;
+  transform: translateY(-2px);
+}
+
+.nav-admin {
+  color: #fff;
+  background: #082f25;
+  border-color: #082f25;
+}
+
+.nav-admin:hover {
+  color: #fff;
+  background: #0c6548;
+  transform: translateY(-2px);
+}
+
+/* Premium hero section */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 490px;
+  padding: 76px 0 94px;
+  background:
+    radial-gradient(ellipse at 78% 10%, rgba(35,150,104,.45), transparent 35%),
+    radial-gradient(ellipse at 4% 100%, rgba(255,153,51,.16), transparent 32%),
+    linear-gradient(120deg,#031f19 0%,#064a36 54%,#073b30 100%);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 35px;
+  right: -35px;
+  width: 230px;
+  height: 145px;
+  border-radius: 12px;
+  background: linear-gradient(
+    to bottom,
+    #ff9933 0 33.33%,
+    #fff 33.33% 66.66%,
+    #138808 66.66% 100%
+  );
+  opacity: .12;
+  transform-origin: left center;
+  animation: tirangaWave 6s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+.hero::after {
+  content: "☪";
+  position: absolute;
+  z-index: -1;
+  right: 8%;
+  bottom: 3%;
+  color: rgba(244,206,114,.14);
+  font-size: clamp(100px,15vw,190px);
+  line-height: 1;
+  animation: moonFloat 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.hero-grid {
+  gap: clamp(30px,6vw,80px);
+}
+
+.hero .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 14px;
+  border: 1px solid rgba(244,206,114,.35);
+  border-radius: 30px;
+  background: rgba(255,255,255,.05);
+  color: #f4ce72;
+  letter-spacing: 1.6px;
+}
+
+.hero h1 {
+  max-width: 650px;
+  font-size: clamp(42px,5.5vw,70px);
+  letter-spacing: -3px;
+  line-height: 1.06;
+  text-shadow: 0 6px 30px rgba(0,0,0,.15);
+}
+
+.hero h1 .gold {
+  color: #f4ce72;
+  background: linear-gradient(90deg,#ffe6a1,#eab94b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  line-height: 1.8;
+}
+
+.btn {
+  min-height: 46px;
+  border-radius: 12px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+}
+
+.btn-gold {
+  box-shadow: 0 8px 22px rgba(231,184,74,.2);
+}
+
+.btn-outline {
+  backdrop-filter: blur(8px);
+}
+
+/* Hero card */
+.hero-card {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 28px;
+  padding: 27px;
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,.13),
+    rgba(255,255,255,.035)
+  );
+  box-shadow: 0 35px 80px rgba(0,0,0,.24);
+  backdrop-filter: blur(10px);
+}
+
+.hero-card h2 {
+  font-size: clamp(25px,2.5vw,33px);
+  line-height: 1.2;
+}
+
+.hero-card .globe {
+  animation: emblemFloat 4s ease-in-out infinite;
+  box-shadow: 0 0 25px rgba(231,184,74,.12);
+}
+
+.hero-card .globe::after {
+  content: "☪";
+  position: absolute;
+  right: -9px;
+  top: -12px;
+  color: #f4d879;
+  font-size: 23px;
+}
+
+/* Search bar */
+.search-box {
+  border: 1px solid #e7eee9;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 22px 60px rgba(6,62,44,.13);
+}
+
+.search-controls input,
+.search-controls select {
+  min-height: 48px;
+  border-radius: 11px;
+  background: #fbfdfb;
+}
+
+.search-controls input:focus,
+.search-controls select:focus {
+  border-color: #087454;
+  box-shadow: 0 0 0 3px rgba(8,116,84,.12);
+}
+
+/* Sections */
+.section {
+  padding: 78px 0;
+}
+
+.section-heading h2 {
+  position: relative;
+}
+
+.section-heading h2::after {
+  content: "";
+  display: block;
+  width: 55px;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    var(--saffron) 0 33.33%,
+    #fff 33.33% 66.66%,
+    var(--india-green) 66.66% 100%
+  );
+}
+
+/* Country cards */
+.country-card {
+  min-height: 155px;
+  padding: 20px;
+  border-radius: 17px;
+  background: linear-gradient(155deg,#fff,#fbfdfb);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.country-card .flag {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  background: #f0f7f2;
+  font-size: 27px;
+}
+
+.country-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 35px rgba(8,54,39,.1);
+}
+
+/* Job cards */
+.jobs-section {
+  background: linear-gradient(180deg,#f5faf6,#f9fbf9);
+}
+
+.job-card {
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 8px 26px rgba(8,54,39,.04);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 38px rgba(8,54,39,.1);
+}
+
+.job-card h3 {
+  font-size: 19px;
+}
+
+.job-country {
+  border-radius: 9px;
+}
+
+/* Application form */
+.apply-section {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 5% 90%,rgba(255,153,51,.1),transparent 25%),
+    radial-gradient(circle at 95% 5%,rgba(19,136,8,.08),transparent 25%),
+    linear-gradient(135deg,#eff8f2,#f8fbf9);
+}
+
+.form-card {
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 20px 55px rgba(8,54,39,.09);
+}
+
+.form-card input,
+.form-card select,
+.form-card textarea {
+  border-radius: 10px;
+}
+
+/* How-to cards */
+.step {
+  border-radius: 18px;
+  padding: 25px;
+  background: linear-gradient(145deg,#fff,#fbfdfb);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(8,54,39,.08);
+}
+
+.step > span {
+  width: 47px;
+  height: 47px;
+  border-radius: 14px;
+  background: linear-gradient(145deg,#e8f6ec,#f7ead0);
+}
+
+/* Footer with Tiranga accent */
+.site-footer {
+  position: relative;
+  overflow: hidden;
+  padding: 36px 0 25px;
+}
+
+.site-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    #ff9933 0 33.33%,
+    #fff 33.33% 66.66%,
+    #138808 66.66% 100%
+  );
+}
+
+.footer-row {
+  position: relative;
+}
+
+.footer-access {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-access a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(255,255,255,.055);
+  font-size: 11px;
+}
+
+.footer-access a:hover {
+  background: rgba(255,255,255,.13);
+  color: #f4d879;
+}
+
+/* Floating WhatsApp button */
+.floating-whatsapp {
+  animation: whatsappPulse 2.8s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes tirangaWave {
+  0%,100% {
+    transform: perspective(400px) rotate(-8deg) skewY(-2deg);
+  }
+  50% {
+    transform: perspective(400px) rotate(-4deg) skewY(3deg) translateY(5px);
+  }
+}
+
+@keyframes moonFloat {
+  0%,100% {
+    transform: translateY(0) rotate(-7deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(3deg);
+  }
+}
+
+@keyframes emblemFloat {
+  0%,100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes whatsappPulse {
+  0%,100% {
+    box-shadow: 0 9px 28px rgba(6,78,59,.22);
+  }
+  50% {
+    box-shadow: 0 9px 30px rgba(22,131,75,.38),0 0 0 7px rgba(22,131,75,.08);
+  }
+}
+
+/* Tablet */
+@media (max-width:1000px) {
+  .nav {
+    gap: 10px;
+  }
+
+  .nav-login {
+    padding: 9px 8px;
+    font-size: 10px;
+  }
+
+  .nav-apply {
+    padding: 10px 12px;
+  }
+
+  .brand {
+    font-size: 18px;
+  }
+}
+
+/* Mobile */
+@media (max-width:760px) {
+  .nav {
+    height: auto;
+    min-height: 66px;
+    flex-wrap: wrap;
+    padding: 9px 0;
+  }
+
+  .menu-toggle {
+    margin-left: auto;
+  }
+
+  .hero {
+    min-height: 0;
+    padding: 48px 0 70px;
+  }
+
+  .hero h1 {
+    font-size: clamp(39px,10vw,54px);
+    letter-spacing: -2px;
+  }
+
+  .hero-card {
+    min-height: 0;
+    padding: 22px;
+  }
+
+  .section {
+    padding: 58px 0;
+  }
+
+  .country-card {
+    min-height: 140px;
+  }
+
+  .footer-access {
+    width: 100%;
+    gap: 9px;
+  }
+
+  .footer-access a {
+    flex: 1;
+  }
+}
+
+/* Accessibility: reduce animation when requested */
+@media (prefers-reduced-motion:reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+```
