@@ -151,46 +151,28 @@ export default {
         return new Response(t, { status: 200, headers: { ...cors, "Content-Type": "application/json; charset=utf-8" } });
       }
 
-      if (path === "/api/success-stories" && request.method === "GET") {
-        const r = await db(env, "success_stories?select=id,candidate_name,job_title,country,created_at&status=eq.published&order=created_at.desc&limit=12");
-        const t = await r.text();
-        if (!r.ok) return json({ error: "Success stories service unavailable hai. Worker deployment aur Supabase migration check karein." }, 502, cors);
-        return new Response(t, { status: 200, headers: { ...cors, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "public, max-age=60" } });
-      }
-
       if (path === "/api/agent/register" && request.method === "POST") {
         if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
         const b = await request.json();
-        const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), enteredEmail = cleanText(b.email, 160).toLowerCase(), agency = cleanText(b.agency_name, 160), password = String(b.password || "");
-        if (!name || !phone || !agency || password.length < 8 || password.length > 200) return json({ error: "Naam, mobile, agency aur 8+ character password zaroori hain." }, 400, cors);
-        if (!/^[0-9+() -]{7,20}$/.test(phone)) return json({ error: "Mobile number check karein." }, 400, cors);
-        if (enteredEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enteredEmail)) return json({ error: "Email address sahi nahi hai." }, 400, cors);
-        // Keep existing database compatibility if email column is NOT NULL: use an internal placeholder when omitted.
-        const email = enteredEmail || `noemail+${phone.replace(/\D/g, "")}@agents.gulfjobsindia.invalid`;
-        const phoneExists = await db(env, `agents?select=id&phone=eq.${encodeURIComponent(phone)}&limit=1`);
-        if (!phoneExists.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
-        if ((await phoneExists.json()).length) return json({ error: "Is mobile number se account pehle se bana hua hai." }, 409, cors);
-        if (enteredEmail) {
-          const emailExists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
-          if (!emailExists.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
-          if ((await emailExists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
-        }
+        const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), email = cleanText(b.email, 160).toLowerCase(), agency = cleanText(b.agency_name, 160), password = String(b.password || "");
+        if (!name || !phone || !email || !agency || password.length < 8 || password.length > 200) return json({ error: "Saari details bharein. Password kam se kam 8 characters ka ho." }, 400, cors);
+        if (!/^[0-9+() -]{7,20}$/.test(phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Email ya mobile number check karein." }, 400, cors);
+        const exists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
+        if (!exists.ok) return json({ error: "Agent database setup check karein. schema.sql run hua hai?" }, 502, cors);
+        if ((await exists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
         const r = await db(env, "agents", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ full_name: name, phone, email, agency_name: agency, password_hash: await passwordHash(password), status: "pending" }) });
-        if (!r.ok) return json({ error: "Registration save nahi hui. Supabase agents table/schema check karein." }, 502, cors);
-        return json({ ok: true, message: "Registration ho gayi. Admin approval ke baad mobile number aur password se login karein." }, 201, cors);
+        if (!r.ok) return json({ error: "Registration save nahi hui. Supabase schema check karein." }, 502, cors);
+        return json({ ok: true, message: "Registration ho gayi. Admin approval ke baad login kar sakenge." }, 201, cors);
       }
       if (path === "/api/agent/login" && request.method === "POST") {
         if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
-        const b = await request.json(), identifier = cleanText(b.identifier || b.email, 160).trim(), password = String(b.password || "");
-        if (!identifier || !password) return json({ error: "Mobile number/email aur password daalein." }, 400, cors);
-        const isPhone = /^[0-9+() -]{7,20}$/.test(identifier);
-        const filter = isPhone ? `phone=eq.${encodeURIComponent(identifier)}` : `email=eq.${encodeURIComponent(identifier.toLowerCase())}`;
-        const r = await db(env, `agents?select=id,full_name,email,phone,password_hash,status&${filter}&limit=1`);
+        const b = await request.json(), email = cleanText(b.email, 160).toLowerCase(), password = String(b.password || "");
+        const r = await db(env, `agents?select=id,full_name,email,password_hash,status&email=eq.${encodeURIComponent(email)}&limit=1`);
         if (!r.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
         const rows = await r.json();
-        if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Mobile number/email ya password galat hai." }, 401, cors);
+        if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Email ya password galat hai." }, 401, cors);
         if (rows[0].status !== "approved") return json({ error: rows[0].status === "blocked" ? "Account block hai. Admin se contact karein." : "Account approval pending hai." }, 403, cors);
-        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email, phone: rows[0].phone } }, 200, cors);
+        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email } }, 200, cors);
       }
       if (path.startsWith("/api/agent/")) {
         const identity = await agentIdentity(request, env);
@@ -345,92 +327,12 @@ export default {
         return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
       }
 
-      if (path === "/api/admin/success-stories" && request.method === "GET") {
-        const r = await db(env, "success_stories?select=id,application_id,candidate_name,job_title,country,status,created_at&order=created_at.desc&limit=300");
-        const t = await r.text();
-        if (!r.ok) return json({ error: "Success stories load nahi hui. Pehle migration SQL run karein." }, 502, cors);
-        return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
-      }
-
-      // Backfill stories for candidates selected before this feature was deployed.
-      // Existing story status is preserved, so an admin Draft stays Draft.
-      if (path === "/api/admin/success-stories/sync" && request.method === "POST") {
-        const ar = await db(env, "applications?select=id,candidate_name,jobs(title,country)&status=eq.selected&order=created_at.desc&limit=300");
-        const at = await ar.text();
-        if (!ar.ok) return json({ error: "Selected candidates load nahi hue. Database schema check karein." }, 502, cors);
-        let apps;
-        try { apps = JSON.parse(at); } catch { return json({ error: "Applications response samajh nahi aaya." }, 502, cors); }
-        let created = 0, existing = 0;
-        for (const a of apps) {
-          const er = await db(env, `success_stories?select=id&application_id=eq.${encodeURIComponent(a.id)}&limit=1`);
-          if (!er.ok) return json({ error: "Success stories table read nahi hui. Migration SQL check karein." }, 502, cors);
-          const found = await er.json();
-          if (found.length) { existing++; continue; }
-          const job = a.jobs || {};
-          const ir = await db(env, "success_stories", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
-            body: JSON.stringify({ application_id: a.id, candidate_name: a.candidate_name, job_title: job.title || "Gulf Job", country: job.country || "Gulf", status: "published" })
-          });
-          if (!ir.ok) return json({ error: "Ek selected candidate ki story create nahi hui. Migration aur table columns check karein.", created, existing }, 502, cors);
-          created++;
-        }
-        return json({ ok: true, selected: apps.length, created, existing, message: `${created} nayi stories publish hui; ${existing} existing stories ka status jaisa tha waisa rakha gaya.` }, 200, cors);
-      }
-
-      const storyMatch = path.match(/^\/api\/admin\/success-stories\/([0-9a-f-]+)$/i);
-      if (storyMatch && request.method === "PATCH") {
-        const b = await request.json();
-        if (!["draft", "published"].includes(b.status)) return json({ error: "Story status valid nahi hai." }, 400, cors);
-        const r = await db(env, `success_stories?id=eq.${storyMatch[1]}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
-          body: JSON.stringify({ status: b.status, updated_at: new Date().toISOString() })
-        });
-        if (!r.ok) return json({ error: "Story status update nahi hua." }, 502, cors);
-        return json({ ok: true }, 200, cors);
-      }
-
       const appStatusMatch = path.match(/^\/api\/admin\/applications\/([0-9a-f-]+)$/i);
       if (appStatusMatch && request.method === "PATCH") {
         const b = await request.json();
         if (!["new", "reviewing", "selected", "rejected"].includes(b.status)) return json({ error: "Status valid nahi hai." }, 400, cors);
         const r = await db(env, `applications?id=eq.${appStatusMatch[1]}`, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ status: b.status }) });
-        if (!r.ok) return json({ error: "Application status update nahi hua." }, 502, cors);
-
-        // Only public, non-sensitive fields are copied to the story table.
-        const existingResponse = await db(env, `success_stories?select=id,status&application_id=eq.${appStatusMatch[1]}&limit=1`);
-        if (!existingResponse.ok) return json({ error: "Application status update ho gaya, lekin story table setup check karein." }, 502, cors);
-        const existingStories = await existingResponse.json();
-        if (b.status === "selected") {
-          const ar = await db(env, `applications?select=id,candidate_name,jobs(title,country)&id=eq.${appStatusMatch[1]}&limit=1`);
-          if (!ar.ok) return json({ error: "Selected candidate details load nahi hui." }, 502, cors);
-          const apps = await ar.json();
-          if (!apps.length) return json({ error: "Application nahi mili." }, 404, cors);
-          const a = apps[0], job = a.jobs || {};
-          const storyData = { application_id: a.id, candidate_name: a.candidate_name, job_title: job.title || "Gulf Job", country: job.country || "Gulf" };
-          if (existingStories.length) {
-            // Marking an application Selected republishes its story; admin can later Draft it.
-            const upd = await db(env, `success_stories?id=eq.${existingStories[0].id}`, {
-              method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
-              body: JSON.stringify({ ...storyData, status: "published", updated_at: new Date().toISOString() })
-            });
-            if (!upd.ok) return json({ error: "Selected status save hua, story update nahi hui." }, 502, cors);
-          } else {
-            const ins = await db(env, "success_stories", {
-              method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
-              body: JSON.stringify({ ...storyData, status: "published" })
-            });
-            if (!ins.ok) return json({ error: "Selected status save hua, story create nahi hui. Migration SQL check karein." }, 502, cors);
-          }
-        } else if (existingStories.length) {
-          const upd = await db(env, `success_stories?id=eq.${existingStories[0].id}`, {
-            method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
-            body: JSON.stringify({ status: "draft", updated_at: new Date().toISOString() })
-          });
-          if (!upd.ok) return json({ error: "Application status save hua, story ko Draft nahi kar paye." }, 502, cors);
-        }
-        return json({ ok: true }, 200, cors);
+        return json({ ok: r.ok }, r.ok ? 200 : 502, cors);
       }
 
       const docMatch = path.match(/^\/api\/admin\/documents\/([0-9a-f-]+)$/i);
@@ -450,13 +352,7 @@ export default {
       if (path.startsWith("/api/")) return json({ error: "API route nahi mila." }, 404, cors);
       return env.ASSETS.fetch(request);
     } catch (e) {
-      // Log the actual exception in Cloudflare Workers Logs without exposing it to visitors.
-      console.error("Worker request exception", {
-        path: new URL(request.url).pathname,
-        message: String(e?.message || e),
-        stack: String(e?.stack || "").slice(0, 4000)
-      });
-      return json({ error: "Server par error aaya. Settings aur logs check karein." }, 500, cors);
+      return json({ error: "Server par error aaya. Settings aur logs check karein.", detail: (env.ENVIRONMENT === "development" ? String(e) : undefined) }, 500, cors);
     }
   }
 };
