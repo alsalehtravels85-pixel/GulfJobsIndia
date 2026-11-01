@@ -161,25 +161,36 @@ export default {
       if (path === "/api/agent/register" && request.method === "POST") {
         if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
         const b = await request.json();
-        const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), email = cleanText(b.email, 160).toLowerCase(), agency = cleanText(b.agency_name, 160), password = String(b.password || "");
-        if (!name || !phone || !email || !agency || password.length < 8 || password.length > 200) return json({ error: "Saari details bharein. Password kam se kam 8 characters ka ho." }, 400, cors);
-        if (!/^[0-9+() -]{7,20}$/.test(phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Email ya mobile number check karein." }, 400, cors);
-        const exists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
-        if (!exists.ok) return json({ error: "Agent database setup check karein. schema.sql run hua hai?" }, 502, cors);
-        if ((await exists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
+        const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), enteredEmail = cleanText(b.email, 160).toLowerCase(), agency = cleanText(b.agency_name, 160), password = String(b.password || "");
+        if (!name || !phone || !agency || password.length < 8 || password.length > 200) return json({ error: "Naam, mobile, agency aur 8+ character password zaroori hain." }, 400, cors);
+        if (!/^[0-9+() -]{7,20}$/.test(phone)) return json({ error: "Mobile number check karein." }, 400, cors);
+        if (enteredEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enteredEmail)) return json({ error: "Email address sahi nahi hai." }, 400, cors);
+        // Keep existing database compatibility if email column is NOT NULL: use an internal placeholder when omitted.
+        const email = enteredEmail || `noemail+${phone.replace(/\D/g, "")}@agents.gulfjobsindia.invalid`;
+        const phoneExists = await db(env, `agents?select=id&phone=eq.${encodeURIComponent(phone)}&limit=1`);
+        if (!phoneExists.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
+        if ((await phoneExists.json()).length) return json({ error: "Is mobile number se account pehle se bana hua hai." }, 409, cors);
+        if (enteredEmail) {
+          const emailExists = await db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
+          if (!emailExists.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
+          if ((await emailExists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
+        }
         const r = await db(env, "agents", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ full_name: name, phone, email, agency_name: agency, password_hash: await passwordHash(password), status: "pending" }) });
-        if (!r.ok) return json({ error: "Registration save nahi hui. Supabase schema check karein." }, 502, cors);
-        return json({ ok: true, message: "Registration ho gayi. Admin approval ke baad login kar sakenge." }, 201, cors);
+        if (!r.ok) return json({ error: "Registration save nahi hui. Supabase agents table/schema check karein." }, 502, cors);
+        return json({ ok: true, message: "Registration ho gayi. Admin approval ke baad mobile number aur password se login karein." }, 201, cors);
       }
       if (path === "/api/agent/login" && request.method === "POST") {
         if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
-        const b = await request.json(), email = cleanText(b.email, 160).toLowerCase(), password = String(b.password || "");
-        const r = await db(env, `agents?select=id,full_name,email,password_hash,status&email=eq.${encodeURIComponent(email)}&limit=1`);
+        const b = await request.json(), identifier = cleanText(b.identifier || b.email, 160).trim(), password = String(b.password || "");
+        if (!identifier || !password) return json({ error: "Mobile number/email aur password daalein." }, 400, cors);
+        const isPhone = /^[0-9+() -]{7,20}$/.test(identifier);
+        const filter = isPhone ? `phone=eq.${encodeURIComponent(identifier)}` : `email=eq.${encodeURIComponent(identifier.toLowerCase())}`;
+        const r = await db(env, `agents?select=id,full_name,email,phone,password_hash,status&${filter}&limit=1`);
         if (!r.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
         const rows = await r.json();
-        if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Email ya password galat hai." }, 401, cors);
+        if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Mobile number/email ya password galat hai." }, 401, cors);
         if (rows[0].status !== "approved") return json({ error: rows[0].status === "blocked" ? "Account block hai. Admin se contact karein." : "Account approval pending hai." }, 403, cors);
-        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email } }, 200, cors);
+        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email, phone: rows[0].phone } }, 200, cors);
       }
       if (path.startsWith("/api/agent/")) {
         const identity = await agentIdentity(request, env);
