@@ -1,18 +1,17 @@
-GulfJobsIndia - Latest Worker Deployment
+GulfJobsIndia — Candidate Updates Fix + Modern Design
 
-IMPORTANT: Is ZIP ko Cloudflare ke "Upload static files" option mein upload NA karein.
-Ye Worker + static assets project hai, isliye GitHub repository ke root mein files commit karke Cloudflare Git integration se deploy karna hai.
+IMPORTANT: Is update mein Worker API bhi badla hai. Sirf HTML/CSS upload karne se candidate updates fix nahi honge. Poora project deploy karein.
 
-1. ZIP extract karein.
-2. Andar ka GulfJobsIndia folder kholein.
-3. Is folder ke andar ke sabhi files/folders ko GitHub repository alsalehtravel85-pixel/GulfJobsIndia ke root mein upload/replace karein. Folder ko nested GulfJobsIndia/GulfJobsIndia mat banayein.
-4. Confirm karein root par wrangler.toml hai, src/index.js hai, aur public folder mein index.html aur agent.html hain.
-5. Commit changes to main.
-6. Cloudflare Worker Settings > Builds mein deploy command npx wrangler deploy rehne dein. Commit ke baad build/deployment successful hone dein.
-7. Cloudflare Settings > Variables and Secrets mein SESSION_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD set hone chahiye. SESSION_SECRET and ADMIN_PASSWORD should be secrets. Do not paste secret values into public chat or source files.
-8. Supabase mein schema.sql ko run/update karein if not already done.
-9. Test: https://gulfjobsindia.gulfjob.workers.dev/api/health
-   Expected: JSON with ok:true and service GulfJobsIndia API.
-10. Then test Agent Registration page.
+1) Pehle apne current project ka backup ZIP bana lein.
+2) Supabase SQL Editor mein SUCCESS-STORIES-MIGRATION.sql sirf tab run karein jab success_stories table abhi nahi bani ho. Agar table pehle se hai, ise dobara run karna zaroori nahi.
+3) ZIP extract karein aur GulfJobsIndia_Update folder ko project root ki tarah use karein. Ismein wrangler.toml, src/index.js aur public folder ek saath rehne chahiye.
+4) Cloudflare Worker secrets pehle jaise hi rakhein: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD, SESSION_SECRET. In secrets ko browser files mein kabhi paste na karein.
+5) Cloudflare Workers project ko is complete folder se deploy karein, taaki src/index.js aur public files dono update hon.
+6) Website ko hard refresh karein: Ctrl + F5.
+7) Admin login > Success Stories > “Sync Selected Candidates” dabayein. Isse pehle se Selected candidates ki missing stories banengi. Existing Draft stories ka status Draft hi rahega.
+8) Admin mein kisi application ko Selected karne par uski public story create/publish hogi. Kisi aur status (New/Reviewing/Rejected) par karne se story Draft ho jayegi.
+9) Jobs ka existing Published/Draft/Closed workflow alag hai aur is update mein uske routes ko change nahi kiya gaya.
 
-NOTE: Existing deployment ko update karne se pehle apni current repository ka backup/download rakh lein.
+PUBLIC DATA: Success Stories mein sirf candidate name, job title, country aur date dikhte hain. Phone, email, message aur PDF public API mein shamil nahi hain.
+
+CHECKS RUN: Worker, admin.js aur app.js JavaScript syntax checks passed. Live Cloudflare/Supabase credentials available nahi the, isliye live deployment test nahi kiya gaya.

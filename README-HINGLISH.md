@@ -52,3 +52,14 @@ Required: full name, mobile number, selected job, and ONE PDF (maximum 10 MB). E
 - Email notifications are optional; set the Resend secrets to enable them.
 - WhatsApp contact is configured to +91 8576850306 in `wrangler.toml`.
 - This is a starter project and must be tested in your own Cloudflare/Supabase environment before accepting real candidate documents.
+
+
+## Success Stories feature (new)
+1. Supabase SQL Editor mein `SUCCESS-STORIES-MIGRATION.sql` ki poori query ek baar run karein. Existing `agents.id` / `applications.agent_id` types ko change karne ki zaroorat nahi.
+2. Cloudflare Worker ke `src/index.js` aur `public/` folder ki updated files deploy karein.
+3. Admin Panel > Applications mein candidate ko `Selected` karein. Story portal ke Selected Candidates section mein publish ho jayegi.
+4. Admin Panel > Success Stories se story ko `Draft` kar sakte hain; Draft portal se hide rahegi. Dobara `Published` karne par show hogi.
+5. Candidate ka phone, email, message aur PDF public API/section mein expose nahi hote.
+6. Application status ko `Reviewing`, `New` ya `Rejected` karne par uski story automatically Draft ho jayegi. Existing job Publish/Draft/Closed workflow unchanged hai.
+
+Note: Admin `Selected` status ko sirf tab set karein jab aap candidate se phone par confirmation/permission le chuke hon.
