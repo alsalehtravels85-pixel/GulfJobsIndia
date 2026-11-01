@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#064e3b"><title>GulfJobsIndia Admin</title><link rel="stylesheet" href="/style.css"></head>
+<body class="admin-page">
+<header class="admin-header"><div class="container"><a class="brand" href="/"><span class="brand-mark">GJ</span><span>GulfJobs<span class="gold">India</span><small style="color:#d2e8dd">ADMIN PANEL</small></span></a><a class="btn btn-outline" href="/">← View website</a></div></header>
+<main class="container admin-main">
+  <section id="loginPanel" class="admin-card" style="max-width:440px;margin:30px auto"><h3>Admin Login</h3><p style="font-size:12px;color:var(--muted)">Apna admin password enter karein.</p><form id="loginForm"><label>Admin password<input name="password" type="password" required autocomplete="current-password" maxlength="200"></label><button class="btn btn-green full" type="submit" id="loginBtn">Login</button><p id="loginMessage" class="admin-message"></p></form></section>
+  <section id="dashboard" class="hidden">
+    <div class="section-heading"><div><span class="eyebrow">CONTROL CENTER</span><h2>Admin Dashboard</h2></div><button class="btn btn-outline" id="logoutBtn" style="color:var(--green);border-color:var(--line)">Logout</button></div>
+    <div class="admin-tabs"><button class="active" data-tab="jobsTab">Manage Jobs</button><button data-tab="applicationsTab">Applications</button><button data-tab="agentsTab">Agents</button><button data-tab="storiesTab">Success Stories</button></div>
+    <section id="jobsTab" class="admin-panel">
+      <form id="jobForm" class="admin-card"><h3 id="jobFormTitle">Add a Gulf Job</h3><input type="hidden" name="id">
+        <div class="admin-form-grid">
+          <label>Job title *<input name="title" required maxlength="160" placeholder="e.g. Electrician"></label>
+          <label>Company / employer *<input name="company_name" required maxlength="160" placeholder="Employer name"></label>
+          <label>Country *<select name="country" required><option value="">Select country</option><option>Saudi Arabia</option><option>UAE</option><option>Kuwait</option><option>Oman</option><option>Bahrain</option></select></label>
+          <label>City<input name="city" maxlength="100" placeholder="e.g. Riyadh"></label>
+          <label>Salary / package<input name="salary" maxlength="100" placeholder="e.g. SAR 1800 + food"></label>
+          <label>Vacancies<input name="vacancies" type="number" min="1" value="1"></label>
+          <label>Qualification<input name="qualification" maxlength="500" placeholder="e.g. 10th pass / ITI"></label>
+          <label>Experience<input name="experience" maxlength="200" placeholder="e.g. 2 years"></label>
+          <label>Job type<select name="job_type"><option>Full Time</option><option>Contract</option><option>Temporary</option></select></label>
+          <label>Last date<input name="last_date" type="date"></label>
+          <label>Publication status<select name="status"><option value="published">Published</option><option value="draft">Draft</option><option value="closed">Closed</option></select></label>
+          <label>Benefits<input name="benefits" maxlength="2000" placeholder="Food, accommodation, transport…"></label>
+        </div>
+        <label>Job description *<textarea name="description" rows="4" required maxlength="8000" placeholder="Responsibilities, working hours and verified job details…"></textarea></label>
+        <label>Eligibility / additional requirements<textarea name="eligibility" rows="2" maxlength="2000" placeholder="Any other requirements (optional)"></textarea></label>
+        <button class="btn btn-green" type="submit" id="saveJobBtn">Save Job</button> <button class="btn btn-outline hidden" type="button" id="cancelEditBtn" style="color:var(--green);border-color:var(--line)">Cancel edit</button><p id="jobMessage" class="admin-message"></p>
+      </form>
+      <section class="admin-card"><h3>All Jobs</h3><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Job</th><th>Country</th><th>Status</th><th>Actions</th></tr></thead><tbody id="adminJobsRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div></section>
+    </section>
+    <section id="agentsTab" class="admin-panel hidden"><div class="admin-card"><h3>Agent Accounts</h3><p style="font-size:12px;color:var(--muted)">Pending agents ko approve karein. Approved agents candidate applications submit kar sakte hain, jobs post nahi.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Agent</th><th>Agency</th><th>Status</th><th>Action</th></tr></thead><tbody id="agentsRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div><p id="agentsMessage" class="admin-message"></p></div></section>
+    <section id="applicationsTab" class="admin-panel hidden"><div class="admin-card"><h3>Candidate Applications</h3><p style="font-size:11px;color:var(--muted)">Private PDF links expire quickly. Download only when needed.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Candidate</th><th>Job</th><th>Submitted</th><th>Status</th><th>Document</th></tr></thead><tbody id="applicationsRows"><tr><td colspan="5">Loading…</td></tr></tbody></table></div><p id="applicationMessage" class="admin-message"></p></div></section>
+    <section id="storiesTab" class="admin-panel hidden"><div class="admin-card"><div class="admin-card-heading"><div><span class="eyebrow">PUBLIC CANDIDATE UPDATES</span><h3>Candidate Success Stories</h3></div><div class="admin-card-actions"><button class="btn btn-outline" id="syncStoriesBtn" type="button">Sync Selected Candidates</button><button class="btn btn-green" type="button" id="refreshStoriesBtn">Refresh</button></div></div><p class="admin-help">Application status Selected karne par story publish hoti hai. Agar candidate pehle se Selected tha, to “Sync Selected Candidates” dabayein. Draft karne par story portal se hide ho jayegi. Phone, email aur PDF public nahi hote.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Candidate / Job</th><th>Added</th><th>Status</th><th>Publish / Draft</th></tr></thead><tbody id="storiesRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div><p id="storiesMessage" class="admin-message" role="status"></p></div></section>
+  </section>
+</main>
+<script src="/admin.js" defer></script></body></html>
