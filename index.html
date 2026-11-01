@@ -12,8 +12,8 @@
 <header class="site-header">
   <div class="container nav">
     <a class="brand" href="/" aria-label="GulfJobsIndia home"><span class="brand-mark">GJ</span><span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span></a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
-    <nav id="mainNav"><a href="#jobs">Latest Jobs</a><a href="#countries">Countries</a><a href="#how">How to Apply</a><a class="nav-apply" href="#apply">Apply Online</a><a href="/agent.html">Agent Login</a></nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+    <nav id="mainNav"><a href="#jobs">Latest Jobs</a><a href="#countries">Countries</a><a href="#how">How to Apply</a><a class="nav-apply" href="#apply">Apply Online</a></nav>
   </div>
 </header>
 <main>
@@ -23,7 +23,7 @@
         <div class="hero-actions"><a class="btn btn-gold" href="#jobs">Explore Latest Jobs <span>→</span></a><a class="btn btn-outline" href="#apply">Apply Online</a></div>
         <div class="trust-row"><span>✓ Simple application</span><span>✓ Five Gulf countries</span><span>✓ Mobile friendly</span></div>
       </div>
-      <div class="hero-card"><div class="hero-card-top"><span class="live-dot"></span> GULF CAREER DESK</div><div class="globe">✦</div><h2>Work Abroad.<br><span class="gold">Build Your Future.</span></h2><p>Saudi Arabia · UAE · Kuwait · Oman · Bahrain</p><a href="#jobs" class="text-link">View current opportunities ↗</a></div>
+      <div class="hero-card"><div class="hero-card-top"><span class="live-dot"></span> GULF CAREER DESK</div><div class="globe" aria-hidden="true">✦</div><h2>Work Abroad.<br><span class="gold">Build Your Future.</span></h2><p>Saudi Arabia · UAE · Kuwait · Oman · Bahrain</p><a href="#jobs" class="text-link">View current opportunities ↗</a></div>
     </div>
   </section>
   <section class="search-section"><div class="container search-box"><label class="search-label" for="searchInput">Find a job</label><div class="search-controls"><input id="searchInput" type="search" placeholder="Job title, company or city…"><select id="countryFilter" aria-label="Filter by country"><option value="">All countries</option><option>Saudi Arabia</option><option>UAE</option><option>Kuwait</option><option>Oman</option><option>Bahrain</option></select><button class="btn btn-green" id="searchBtn">Search Jobs</button></div></div></section>
@@ -40,7 +40,7 @@
     <form id="applicationForm" class="form-card"><h3>Candidate Application</h3><label>Full name <span>*</span><input name="candidate_name" required maxlength="100" placeholder="Enter your full name"></label><label>Mobile number <span>*</span><input name="phone" required maxlength="20" inputmode="tel" placeholder="+91 98765 43210"></label><label>Email <small>(optional)</small><input name="email" type="email" maxlength="160" placeholder="you@example.com"></label><label>Applying for <span>*</span><select name="job_id" id="applyJob" required><option value="">Select a published job</option></select></label><label>Documents — one PDF only <span>*</span><input name="document" type="file" accept="application/pdf,.pdf" required><small>Combine passport copy, photo, CV and relevant certificates in one PDF. Maximum 10 MB.</small></label><label>Message <small>(optional)</small><textarea name="message" rows="2" maxlength="1000" placeholder="Any short note (optional)"></textarea></label><button class="btn btn-green full" type="submit" id="submitApplication">Submit Application</button><p id="formMessage" class="form-message" role="status"></p><small>Submit only documents you are comfortable sharing for recruitment purposes.</small></form>
   </div></section>
 </main>
-<footer class="site-footer"><div class="container footer-row"><a class="brand footer-brand" href="/"><span class="brand-mark">GJ</span><span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span></a><div><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/terms.html">Terms</a><a href="/disclaimer.html">Disclaimer</a><a href="/admin.html">Admin</a></div><p>© <span id="year"></span> GulfJobsIndia. Verify all job details before applying.</p></div></footer>
+<footer class="site-footer"><div class="container footer-row"><a class="brand footer-brand" href="/"><span class="brand-mark">GJ</span><span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span></a><div><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/terms.html">Terms</a><a href="/disclaimer.html">Disclaimer</a></div><div class="footer-access"><a href="/agent.html">☾ Agent Login</a><a href="/admin.html">🔐 Admin Login</a></div><p>© <span id="year"></span> GulfJobsIndia. Verify all job details before applying.</p></div></footer>
 <a class="floating-whatsapp" id="floatingWhatsApp" href="https://wa.me/918576850306" target="_blank" rel="noopener" aria-label="Contact on WhatsApp">☏ <span>WhatsApp</span></a>
 <script src="/app.js" defer></script>
 </body></html>
