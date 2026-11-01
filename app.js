@@ -85,3 +85,18 @@ document.getElementById("applicationForm")?.addEventListener("submit", async e =
   } finally { btn.disabled = false; btn.textContent = "Submit Application"; }
 });
 loadJobs();
+
+
+async function loadSuccessStories(){
+  const list=document.getElementById("successStoryList"), empty=document.getElementById("noStories"), count=document.getElementById("storyCount");
+  if(!list)return;
+  try{
+    const r=await fetch("/api/success-stories",{headers:{Accept:"application/json"}});
+    if(!r.ok)throw new Error("Stories load nahi hui");
+    const stories=await r.json();
+    if(count)count.textContent=`${stories.length} verified ${stories.length===1?"story":"stories"}`;
+    list.innerHTML=stories.length?stories.map(st=>`<article class="story-card"><div class="story-card-top"><span class="story-badge">✓ Verified experience</span><span class="story-country">${escapeHtml(st.country||"Gulf")}</span></div><h3>${escapeHtml(st.story_title)}</h3><p class="story-person">${escapeHtml(st.candidate_display_name)} · ${escapeHtml(st.job_title)}</p><div class="story-text">${escapeHtml(st.story_text)}</div>${st.outcome?`<div class="story-outcome">Outcome: ${escapeHtml(st.outcome)}</div>`:""}</article>`).join(""):'<div class="empty-state story-empty">Abhi verified success story publish nahi hui hai.</div>';
+    if(empty)empty.classList.toggle("hidden",stories.length>0);
+  }catch(e){list.innerHTML='<div class="empty-state story-empty">Success stories abhi load nahi ho pa rahi hain.</div>';if(count)count.textContent="Verified stories";}
+}
+loadSuccessStories();

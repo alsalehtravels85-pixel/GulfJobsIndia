@@ -30,6 +30,7 @@ document.querySelectorAll(".admin-tabs button").forEach(btn => btn.addEventListe
   document.querySelectorAll(".admin-panel").forEach(p => p.classList.toggle("hidden", p.id !== btn.dataset.tab));
   if (btn.dataset.tab === "applicationsTab") loadApplications();
   if (btn.dataset.tab === "agentsTab") loadAgents();
+  if (btn.dataset.tab === "storiesTab") loadStories();
 }));
 function formObject(form) {
   const fd = new FormData(form), out = {};
@@ -95,3 +96,21 @@ if (token) showDashboard();
 
 async function loadAgents(){const rows=$("#agentsRows");rows.innerHTML='<tr><td colspan="4">Loading…</td></tr>';try{const agents=await api("/api/admin/agents");rows.innerHTML=agents.length?agents.map(a=>`<tr><td><strong>${esc(a.full_name)}</strong><br>${esc(a.phone)}<br><small>${esc(a.email)}</small></td><td>${esc(a.agency_name)}</td><td>${esc(a.status)}</td><td><select data-agent-status="${esc(a.id)}"><option value="pending" ${a.status==="pending"?"selected":""}>Pending</option><option value="approved" ${a.status==="approved"?"selected":""}>Approved</option><option value="blocked" ${a.status==="blocked"?"selected":""}>Blocked</option></select></td></tr>`).join(""):'<tr><td colspan="4">Abhi koi agent registered nahi.</td></tr>'}catch(err){rows.innerHTML=`<tr><td colspan="4">${esc(err.message)}</td></tr>`}}
 $("#agentsRows")?.addEventListener("change",async e=>{const sel=e.target.closest("[data-agent-status]");if(!sel)return;try{await api(`/api/admin/agents/${sel.dataset.agentStatus}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:sel.value})});$("#agentsMessage").textContent="Agent status update ho gaya."}catch(err){$("#agentsMessage").textContent=err.message;loadAgents()}});
+
+
+const storyForm = document.querySelector("#storyForm");
+storyForm?.addEventListener("submit", async e => {
+  e.preventDefault(); const form=e.currentTarget, msg=$("#storyMessage"), btn=$("#saveStoryBtn");
+  const fd=new FormData(form), body=Object.fromEntries(fd.entries());
+  for(const k of ["candidate_consent","employer_consent","verified"]) body[k]=fd.get(k)==="true";
+  msg.className="admin-message";msg.textContent="Saving…";btn.disabled=true;
+  try{const data=await api("/api/admin/success-stories",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});msg.className="admin-message success";msg.textContent=data.message||"Story save ho gayi.";form.reset();await loadStories();}
+  catch(err){msg.className="admin-message error";msg.textContent=err.message;}finally{btn.disabled=false;}
+});
+async function loadStories(){
+ const rows=$("#storiesRows");if(!rows)return;rows.innerHTML='<tr><td colspan="4">Loading…</td></tr>';
+ try{const stories=await api("/api/admin/success-stories");rows.innerHTML=stories.length?stories.map(st=>`<tr><td><strong>${esc(st.story_title)}</strong><br>${esc(st.candidate_display_name)} · ${esc(st.job_title)}<br><small>${esc(st.country)}</small></td><td>Candidate: ${st.candidate_consent?"Yes":"No"}<br>Employer: ${st.employer_consent?"Yes":"No"}<br>Verified: ${st.verified?"Yes":"No"}<br><small>${esc(st.verification_note||"")}</small></td><td><select class="story-status" data-story-status="${esc(st.id)}"><option value="draft" ${st.status==="draft"?"selected":""}>Draft</option><option value="published" ${st.status==="published"?"selected":""}>Published</option><option value="hidden" ${st.status==="hidden"?"selected":""}>Hidden</option></select></td><td><button class="small-btn danger" data-story-delete="${esc(st.id)}">Delete</button></td></tr>`).join(""):'<tr><td colspan="4">Abhi stories nahi hain.</td></tr>';
+ }catch(err){rows.innerHTML=`<tr><td colspan="4">${esc(err.message)}</td></tr>`;}
+}
+$("#storiesRows")?.addEventListener("change",async e=>{const sel=e.target.closest("[data-story-status]");if(!sel)return;try{await api(`/api/admin/success-stories/${sel.dataset.storyStatus}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:sel.value})});await loadStories();}catch(err){alert(err.message);loadStories();}});
+$("#storiesRows")?.addEventListener("click",async e=>{const btn=e.target.closest("[data-story-delete]");if(!btn||!confirm("Is success story ko delete karna hai?"))return;try{await api(`/api/admin/success-stories/${btn.dataset.storyDelete}`,{method:"DELETE"});await loadStories();}catch(err){alert(err.message);}});
