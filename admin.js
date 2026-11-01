@@ -15,12 +15,12 @@ async function api(path, options = {}) {
 function showDashboard() { $("#loginPanel").classList.add("hidden"); $("#dashboard").classList.remove("hidden"); loadJobs(); }
 function logout() { token = ""; sessionStorage.removeItem(TOKEN_KEY); $("#dashboard").classList.add("hidden"); $("#loginPanel").classList.remove("hidden"); }
 $("#loginForm").addEventListener("submit", async e => {
-  e.preventDefault(); const msg = $("#loginMessage"), btn = $("#loginBtn");
+  e.preventDefault(); const form = e.currentTarget; const msg = $("#loginMessage"), btn = $("#loginBtn");
   msg.textContent = ""; btn.disabled = true; btn.textContent = "Checking…";
   try {
-    const password = new FormData(e.currentTarget).get("password");
+    const password = new FormData(form).get("password");
     const data = await api("/api/admin/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password}) });
-    token = data.token; sessionStorage.setItem(TOKEN_KEY, token); e.currentTarget.reset(); showDashboard();
+    token = data.token; sessionStorage.setItem(TOKEN_KEY, token); form.reset(); showDashboard();
   } catch(err) { msg.textContent = err.message; msg.className = "admin-message error"; }
   finally { btn.disabled = false; btn.textContent = "Login"; }
 });
