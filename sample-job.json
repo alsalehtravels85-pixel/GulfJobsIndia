@@ -1,0 +1,16 @@
+{
+  "title": "Construction Helper",
+  "company_name": "Example Gulf Employer",
+  "country": "Saudi Arabia",
+  "city": "Riyadh",
+  "salary": "1200 SAR + food",
+  "vacancies": 10,
+  "qualification": "10th pass preferred",
+  "experience": "0-2 years",
+  "job_type": "Full Time",
+  "last_date": "2026-12-15",
+  "status": "draft",
+  "benefits": "Accommodation, transport, duty hours as per contract",
+  "description": "Sample description. Replace with verified details from the official employer notice.",
+  "eligibility": "Passport and medical fitness as required."
+}
