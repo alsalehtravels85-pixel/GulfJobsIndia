@@ -9,319 +9,512 @@
 <link rel="stylesheet" href="/style.css">
 
 <style>
-/* ===== GULFJOBSINDIA SUCCESS LEADERBOARD ===== */
-.success-section{
-  position:relative;
-  overflow:hidden;
-  padding:78px 0;
-  background:
-    radial-gradient(ellipse at 50% 0%,rgba(212,175,55,.14),transparent 52%),
-    linear-gradient(180deg,#f8fbf7 0%,#eef6ef 100%);
-}
-.success-section:before,
-.success-section:after{
-  content:"✦";
-  position:absolute;
-  color:rgba(185,144,37,.18);
-  font-size:100px;
-  pointer-events:none;
-}
-.success-section:before{top:30px;left:3%}
-.success-section:after{right:3%;bottom:30px}
-.success-section .container{position:relative;z-index:1}
-.success-heading{text-align:center;margin-bottom:34px}
-.success-heading .eyebrow{
-  display:inline-block;
-  padding:8px 15px;
-  border:1px solid rgba(212,175,55,.55);
-  border-radius:30px;
-  background:#fff9e9;
-  color:#80621a;
-  font-size:11px;
-  font-weight:900;
-  letter-spacing:2px;
-}
-.success-heading h2{
-  margin:15px 0 10px;
-  color:#064e3b;
-  font-size:clamp(29px,5vw,46px);
-  font-weight:900;
-  line-height:1.15;
-}
-.success-heading h2 span{
-  background:linear-gradient(110deg,#98701b,#e2bd50,#9b741f);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-}
-.success-heading p{
-  max-width:620px;
-  margin:0 auto;
-  color:#63736a;
-  font-size:14px;
-  line-height:1.8;
-}
-.leaderboard-banner{
-  position:relative;
-  max-width:900px;
-  margin:0 auto 28px;
-  padding:24px 18px;
-  overflow:hidden;
-  text-align:center;
-  color:#fff;
-  border:1px solid rgba(238,205,106,.75);
-  border-radius:23px;
-  background:
-    radial-gradient(ellipse at 50% 0%,rgba(230,190,76,.25),transparent 65%),
-    linear-gradient(135deg,#032f25,#086347 55%,#064332);
-  box-shadow:0 16px 38px rgba(3,65,44,.17),inset 0 1px rgba(255,255,255,.15);
-}
-.leaderboard-banner:before,
-.leaderboard-banner:after{
-  content:"✧";
-  position:absolute;
-  top:12px;
-  color:#f2d77e;
-  font-size:35px;
-  animation:leaderSparkle 3s ease-in-out infinite;
-}
-.leaderboard-banner:before{left:18px}
-.leaderboard-banner:after{right:18px;animation-delay:1.2s}
-.leaderboard-crown{
-  display:block;
-  margin-bottom:5px;
-  font-size:38px;
-  filter:drop-shadow(0 3px 8px rgba(244,211,115,.3));
-  animation:crownFloat 3s ease-in-out infinite;
-}
-.leaderboard-banner h3{
-  margin:0;
-  color:#f7df91;
-  font-size:clamp(19px,4vw,28px);
-  font-weight:900;
-  letter-spacing:1px;
-}
-.leaderboard-banner p{
-  margin:8px 0 0;
-  color:#e1eee5;
-  font-size:12px;
-  letter-spacing:.5px;
-}
-.leaderboard-status{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:8px;
-  margin-top:15px;
-  color:#fff1bb;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:1px;
-}
-.leaderboard-status i{
-  width:8px;height:8px;border-radius:50%;
-  background:#8be6a5;
-  box-shadow:0 0 10px #8be6a5;
-}
-#successStories.leaderboard-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  align-items:stretch;
-  gap:20px;
-  max-width:1000px;
-  margin:0 auto;
-}
-#successStories.leaderboard-grid > *{
-  position:relative;
-  min-width:0;
-  padding:25px 18px 22px;
-  overflow:hidden;
-  text-align:center;
-  border:1px solid #e4d4a0;
-  border-radius:20px;
-  background:linear-gradient(155deg,#fff 0%,#fffdf6 100%);
-  box-shadow:0 9px 25px rgba(15,74,49,.08);
-  animation:leaderCardIn .6s ease both;
-  transition:transform .25s ease,box-shadow .25s ease;
-}
-#successStories.leaderboard-grid > *:hover{
-  transform:translateY(-5px);
-  box-shadow:0 16px 32px rgba(15,74,49,.14);
-}
-#successStories.leaderboard-grid > *:before{
-  content:"";
-  position:absolute;
-  top:0;left:0;right:0;height:5px;
-  background:linear-gradient(90deg,#a77c1d,#f1d779,#a77c1d);
-}
-#successStories.leaderboard-grid > *:first-child{
-  border-color:#d9b64e;
-  background:
-    radial-gradient(ellipse at 50% 0%,rgba(242,216,132,.28),transparent 65%),
-    linear-gradient(160deg,#fffdf4,#fff);
-  box-shadow:0 14px 32px rgba(166,125,28,.16);
-}
-#successStories.leaderboard-grid > *:first-child:before{
-  height:6px;
-  background:linear-gradient(90deg,#98701b,#ffdf76,#98701b);
-}
-#successStories.leaderboard-grid > *:nth-child(2):before{
-  background:linear-gradient(90deg,#929da5,#e4e8eb,#929da5);
-}
-#successStories.leaderboard-grid > *:nth-child(3):before{
-  background:linear-gradient(90deg,#a86b3c,#e4b08a,#a86b3c);
-}
-#successStories.leaderboard-grid > * h3,
-#successStories.leaderboard-grid > * h4{
-  margin:10px 0;
-  color:#07533d;
-  font-size:18px;
-  font-weight:900;
-  overflow-wrap:anywhere;
-}
-#successStories.leaderboard-grid > * p{
-  color:#66776c;
-  font-size:13px;
-  line-height:1.7;
-  overflow-wrap:anywhere;
-}
-#successStories.leaderboard-grid > * strong{
-  color:#0a5b40;
-}
-#successStories.leaderboard-grid > * img{
-  max-width:100%;
-  height:auto;
-  border-radius:12px;
-}
-#successStories.leaderboard-grid > * a{
-  overflow-wrap:anywhere;
-}
-#successStories.leaderboard-grid > * button{
-  max-width:100%;
-  overflow-wrap:anywhere;
-}
-#successStories.leaderboard-grid > *:first-child{
-  animation:leaderCardIn .7s ease both,leaderGlow 4s ease-in-out 1s infinite;
-}
-#storyCount{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:82px;
-  padding:9px 14px;
-  border:1px solid #d7c27e;
-  border-radius:30px;
-  background:#fff9e8;
-  color:#765a17;
-  font-size:12px;
-  font-weight:900;
-}
-#noStories{
-  max-width:700px;
-  margin:20px auto 0;
-  padding:25px 18px;
-  border:1px dashed #c8d9cb;
-  border-radius:16px;
-  background:rgba(255,255,255,.8);
-  color:#607267;
-  text-align:center;
-  line-height:1.8;
-}
-.leaderboard-footer{
-  margin:25px auto 0;
-  color:#66776c;
-  font-size:12px;
-  line-height:1.8;
-  text-align:center;
-}
-.leaderboard-footer span{color:#98701b}
-@keyframes crownFloat{
-  0%,100%{transform:translateY(0) rotate(-3deg)}
-  50%{transform:translateY(-5px) rotate(3deg)}
-}
-@keyframes leaderSparkle{
-  0%,100%{opacity:.45;transform:scale(.85) rotate(0)}
-  50%{opacity:1;transform:scale(1.12) rotate(20deg)}
-}
-@keyframes leaderCardIn{
-  from{opacity:0;transform:translateY(15px)}
-  to{opacity:1;transform:translateY(0)}
-}
-@keyframes leaderGlow{
-  0%,100%{box-shadow:0 14px 32px rgba(166,125,28,.14)}
-  50%{box-shadow:0 14px 38px rgba(166,125,28,.25)}
-}
-@media(max-width:760px){
-  .success-section{padding:55px 0}
-  #successStories.leaderboard-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:12px;
-  }
-  #successStories.leaderboard-grid > *{
-    padding:22px 12px 18px;
-    border-radius:16px;
-  }
-  #successStories.leaderboard-grid > *:first-child{
-    grid-column:1/-1;
-  }
-}
-@media(max-width:420px){
-  #successStories.leaderboard-grid{grid-template-columns:1fr}
-  #successStories.leaderboard-grid > *:first-child{grid-column:auto}
-  .leaderboard-banner{padding:22px 13px}
-}
-@media(prefers-reduced-motion:reduce){
-  .success-section *,
-  .success-section *:before,
-  .success-section *:after{
-    animation:none!important;
-    scroll-behavior:auto!important;
-    transition:none!important;
-  }
-}
-  /* Slim Top Header */
+/* =====================================
+   GULFJOBSINDIA PREMIUM DESIGN UPDATE
+   ===================================== */
+
+/* Compact top header */
 .site-header .nav {
-  min-height: 62px;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  min-height: 58px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
-
 .site-header .brand-mark svg {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
 }
-
-.site-header .brand {
-  gap: 8px;
-}
-
 .site-header .brand small {
   font-size: 10px;
   margin-top: 2px;
 }
 
-@media (max-width: 768px) {
+/* COMPACT GULF CAREER DESK BOX */
+.hero-card {
+  padding: 12px 16px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  align-self: start;
+  border-radius: 18px !important;
+  overflow: hidden;
+}
+
+.hero-card-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 5px !important;
+  font-size: 10px !important;
+  line-height: 1.3;
+}
+
+.hero-card-tag {
+  font-size: 9px !important;
+  padding: 4px 7px !important;
+}
+
+/* Small leaderboard badge inside career box */
+.hero-leaderboard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 5px 0 3px;
+  padding: 5px 10px;
+  border: 1px solid rgba(244,212,119,.65);
+  border-radius: 30px;
+  background: rgba(244,212,119,.12);
+  color: #f4d477;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: .3px;
+  text-decoration: none;
+  transition: background .2s ease, transform .2s ease;
+}
+.hero-leaderboard:hover {
+  background: rgba(244,212,119,.22);
+  transform: translateY(-1px);
+}
+
+/* Reduce tall illustration */
+.hero-card .hero-visual {
+  height: 82px !important;
+  min-height: 82px !important;
+  margin: 5px 0 !important;
+  overflow: hidden;
+}
+
+.hero-card h2 {
+  font-size: 21px !important;
+  line-height: 1.2 !important;
+  margin: 5px 0 !important;
+}
+
+.hero-card > p {
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+  margin: 5px 0 !important;
+}
+
+.hero-card .text-link {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 11px !important;
+}
+
+.hero-card-foot {
+  margin-top: 7px !important;
+  padding-top: 6px !important;
+  font-size: 10px !important;
+  gap: 8px;
+}
+
+/* PREMIUM SUCCESS LEADERBOARD */
+.success-section {
+  position: relative;
+  overflow: hidden;
+  padding: 65px 0;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(212,175,55,.15),transparent 55%),
+    linear-gradient(180deg,#f8fbf7 0%,#edf5ee 100%);
+}
+
+.success-section:before,
+.success-section:after {
+  content: "✦";
+  position: absolute;
+  color: rgba(185,144,37,.15);
+  font-size: 90px;
+  pointer-events: none;
+}
+
+.success-section:before {
+  top: 25px;
+  left: 3%;
+}
+
+.success-section:after {
+  right: 3%;
+  bottom: 20px;
+}
+
+.success-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+.success-heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.success-heading .eyebrow {
+  display: inline-block;
+  padding: 7px 13px;
+  border: 1px solid rgba(212,175,55,.55);
+  border-radius: 30px;
+  background: #fff9e9;
+  color: #80621a;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.success-heading h2 {
+  margin: 13px 0 9px;
+  color: #064e3b;
+  font-size: clamp(27px,5vw,43px);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.success-heading h2 span {
+  background: linear-gradient(110deg,#98701b,#e2bd50,#9b741f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.success-heading p {
+  max-width: 620px;
+  margin: 0 auto;
+  color: #63736a;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* Green and gold banner */
+.leaderboard-banner {
+  position: relative;
+  max-width: 850px;
+  margin: 0 auto 25px;
+  padding: 19px 15px;
+  overflow: hidden;
+  text-align: center;
+  color: #fff;
+  border: 1px solid rgba(238,205,106,.75);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(230,190,76,.23),transparent 65%),
+    linear-gradient(135deg,#032f25,#086347 55%,#064332);
+  box-shadow: 0 12px 30px rgba(3,65,44,.15);
+}
+
+.leaderboard-banner:before,
+.leaderboard-banner:after {
+  content: "✧";
+  position: absolute;
+  top: 10px;
+  color: #f2d77e;
+  font-size: 27px;
+  animation: leaderSparkle 3s ease-in-out infinite;
+}
+
+.leaderboard-banner:before {
+  left: 15px;
+}
+
+.leaderboard-banner:after {
+  right: 15px;
+  animation-delay: 1.2s;
+}
+
+.leaderboard-crown {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 31px;
+  animation: crownFloat 3s ease-in-out infinite;
+}
+
+.leaderboard-banner h3 {
+  margin: 0;
+  color: #f7df91;
+  font-size: clamp(17px,3.5vw,25px);
+  font-weight: 900;
+  letter-spacing: .8px;
+}
+
+.leaderboard-banner p {
+  margin: 6px 0 0;
+  color: #e1eee5;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.leaderboard-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  color: #fff1bb;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .8px;
+}
+
+.leaderboard-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8be6a5;
+  box-shadow: 0 0 9px #8be6a5;
+}
+
+/* Candidate cards */
+#successStories.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  align-items: stretch;
+  gap: 17px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+#successStories.leaderboard-grid > * {
+  position: relative;
+  min-width: 0;
+  padding: 22px 16px 19px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid #e4d4a0;
+  border-radius: 18px;
+  background: linear-gradient(155deg,#fff 0%,#fffdf6 100%);
+  box-shadow: 0 8px 22px rgba(15,74,49,.08);
+  animation: leaderCardIn .55s ease both;
+  transition: transform .25s ease,box-shadow .25s ease;
+}
+
+#successStories.leaderboard-grid > *:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(15,74,49,.13);
+}
+
+#successStories.leaderboard-grid > *:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg,#a77c1d,#f1d779,#a77c1d);
+}
+
+#successStories.leaderboard-grid > *:first-child {
+  border-color: #d9b64e;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(242,216,132,.24),transparent 65%),
+    linear-gradient(160deg,#fffdf4,#fff);
+  box-shadow: 0 12px 28px rgba(166,125,28,.15);
+  animation: leaderCardIn .6s ease both,leaderGlow 4s ease-in-out 1s infinite;
+}
+
+#successStories.leaderboard-grid > *:nth-child(2):before {
+  background: linear-gradient(90deg,#929da5,#e4e8eb,#929da5);
+}
+
+#successStories.leaderboard-grid > *:nth-child(3):before {
+  background: linear-gradient(90deg,#a86b3c,#e4b08a,#a86b3c);
+}
+
+#successStories.leaderboard-grid > * h3,
+#successStories.leaderboard-grid > * h4 {
+  margin: 10px 0;
+  color: #07533d;
+  font-size: 17px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+#successStories.leaderboard-grid > * p {
+  color: #66776c;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+#successStories.leaderboard-grid > * strong {
+  color: #0a5b40;
+}
+
+#successStories.leaderboard-grid > * img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+#successStories.leaderboard-grid > * a {
+  overflow-wrap: anywhere;
+}
+
+#successStories.leaderboard-grid > * button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+#storyCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 75px;
+  padding: 8px 12px;
+  border: 1px solid #d7c27e;
+  border-radius: 30px;
+  background: #fff9e8;
+  color: #765a17;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+#noStories {
+  max-width: 700px;
+  margin: 20px auto 0;
+  padding: 23px 16px;
+  border: 1px dashed #c8d9cb;
+  border-radius: 15px;
+  background: rgba(255,255,255,.8);
+  color: #607267;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.leaderboard-footer {
+  margin: 22px auto 0;
+  color: #66776c;
+  font-size: 11px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.leaderboard-footer span {
+  color: #98701b;
+  font-weight: 800;
+}
+
+@keyframes crownFloat {
+  0%,100% {transform:translateY(0) rotate(-3deg)}
+  50% {transform:translateY(-4px) rotate(3deg)}
+}
+
+@keyframes leaderSparkle {
+  0%,100% {opacity:.45;transform:scale(.85) rotate(0)}
+  50% {opacity:1;transform:scale(1.1) rotate(20deg)}
+}
+
+@keyframes leaderCardIn {
+  from {opacity:0;transform:translateY(12px)}
+  to {opacity:1;transform:translateY(0)}
+}
+
+@keyframes leaderGlow {
+  0%,100% {box-shadow:0 12px 28px rgba(166,125,28,.13)}
+  50% {box-shadow:0 12px 34px rgba(166,125,28,.23)}
+}
+
+/* Tablet */
+@media (max-width:760px) {
   .site-header .nav {
-    min-height: 54px;
+    min-height: 52px;
     padding-top: 4px;
     padding-bottom: 4px;
   }
 
   .site-header .brand-mark svg {
-    width: 32px;
-    height: 32px;
+    width: 31px;
+    height: 31px;
   }
 
-  .site-header .menu-toggle {
-    padding: 7px 10px;
+  .hero-card {
+    padding: 10px 13px !important;
+  }
+
+  .hero-card .hero-visual {
+    height: 62px !important;
+    min-height: 62px !important;
+  }
+
+  .hero-card h2 {
+    font-size: 18px !important;
+    margin: 4px 0 !important;
+  }
+
+  .hero-card-foot {
+    margin-top: 5px !important;
+    padding-top: 5px !important;
+  }
+
+  .success-section {
+    padding: 48px 0;
+  }
+
+  #successStories.leaderboard-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+  }
+
+  #successStories.leaderboard-grid > * {
+    padding: 20px 12px 16px;
+    border-radius: 15px;
+  }
+
+  #successStories.leaderboard-grid > *:first-child {
+    grid-column: 1/-1;
+  }
+}
+
+/* Small phones */
+@media (max-width:420px) {
+  .hero-card {
+    padding: 9px 12px !important;
+  }
+
+  .hero-card .hero-visual {
+    height: 52px !important;
+    min-height: 52px !important;
+    margin: 3px 0 !important;
+  }
+
+  .hero-card h2 {
+    font-size: 17px !important;
+  }
+
+  .hero-leaderboard {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+
+  #successStories.leaderboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #successStories.leaderboard-grid > *:first-child {
+    grid-column: auto;
+  }
+
+  .leaderboard-banner {
+    padding: 18px 12px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion:reduce) {
+  .success-section *,
+  .success-section *:before,
+  .success-section *:after,
+  .hero-leaderboard {
+    animation: none !important;
+    transition: none !important;
   }
 }
 </style>
 </head>
 
 <body>
+
 <header class="site-header">
   <div class="container nav">
+
     <a class="brand" href="/" aria-label="GulfJobsIndia home">
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 64 64" role="img">
@@ -333,7 +526,9 @@
       </span>
       <span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span>
     </a>
+
     <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+
     <nav id="mainNav">
       <a href="#jobs">Latest Jobs</a>
       <a href="#countries">Countries</a>
@@ -343,10 +538,13 @@
       <a class="nav-login nav-agent" href="/agent.html">☾ Agent Login</a>
       <a class="nav-login nav-admin" href="/admin.html">🔐 Admin Login</a>
     </nav>
+
   </div>
 </header>
 
 <main>
+
+  <!-- HERO SECTION -->
   <section class="hero">
     <div class="hero-decor" aria-hidden="true">
       <span class="decor-mosque">🕌</span>
@@ -355,15 +553,19 @@
       <span class="decor-star star-two">✧</span>
       <span class="decor-lantern">☼</span>
     </div>
+
     <div class="container hero-grid">
+
       <div>
         <span class="eyebrow">YOUR NEXT CAREER STARTS HERE</span>
         <h1>Find Your Next <span class="gold">Gulf Job</span></h1>
         <p>Explore job opportunities in the Gulf. Read the details carefully and apply online using one simple form.</p>
+
         <div class="hero-actions">
           <a class="btn btn-gold" href="#jobs">Explore Latest Jobs <span>→</span></a>
           <a class="btn btn-outline" href="#apply">Apply Online</a>
         </div>
+
         <div class="trust-row">
           <span>✓ Simple application</span>
           <span>✓ Five Gulf countries</span>
@@ -371,84 +573,148 @@
         </div>
       </div>
 
+      <!-- SHORTER CAREER DESK BOX -->
       <div class="hero-card">
+
         <div class="hero-card-top">
-          <span class="live-dot"></span> GULF CAREER DESK
+          <span class="live-dot"></span>
+          <span>GULF CAREER DESK</span>
           <span class="hero-card-tag">INDIA → GULF</span>
         </div>
+
+        <!-- Small leaderboard link inside the same box -->
+        <a class="hero-leaderboard" href="#success-stories">
+          🏆 SUCCESS LEADERBOARD <span>↗</span>
+        </a>
+
         <div class="hero-visual" aria-hidden="true">
           <div class="hero-orbit orbit-one"></div>
           <div class="hero-orbit orbit-two"></div>
           <div class="hero-moon">☾</div>
-          <div class="hero-skyline"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="hero-skyline">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
           <div class="hero-flag"><b></b><b></b><b></b></div>
         </div>
+
         <h2>Work Abroad.<br><span class="gold">Build Your Future.</span></h2>
         <p>Saudi Arabia · UAE · Kuwait · Oman · Bahrain</p>
         <a href="#jobs" class="text-link">View current opportunities ↗</a>
-        <div class="hero-card-foot"><span>✦ Career opportunities</span><span>✦ Apply online</span></div>
+
+        <div class="hero-card-foot">
+          <span>✦ Career opportunities</span>
+          <span>✦ Apply online</span>
+        </div>
+
       </div>
+
     </div>
   </section>
 
+  <!-- JOB SEARCH -->
   <section class="search-section">
     <div class="container search-box">
       <label class="search-label" for="searchInput">Find a job</label>
+
       <div class="search-controls">
         <input id="searchInput" type="search" placeholder="Job title, company or city…">
+
         <select id="countryFilter" aria-label="Filter by country">
           <option value="">All countries</option>
-          <option>Saudi Arabia</option><option>UAE</option><option>Kuwait</option><option>Oman</option><option>Bahrain</option>
+          <option>Saudi Arabia</option>
+          <option>UAE</option>
+          <option>Kuwait</option>
+          <option>Oman</option>
+          <option>Bahrain</option>
         </select>
+
         <button class="btn btn-green" id="searchBtn">Search Jobs</button>
       </div>
     </div>
   </section>
 
+  <!-- COUNTRIES -->
   <section id="countries" class="section">
     <div class="container">
+
       <div class="section-heading">
-        <div><span class="eyebrow">EXPLORE BY DESTINATION</span><h2>Choose Your Country</h2></div>
+        <div>
+          <span class="eyebrow">EXPLORE BY DESTINATION</span>
+          <h2>Choose Your Country</h2>
+        </div>
         <p>Browse opportunities by destination.</p>
       </div>
+
       <div class="country-grid">
-        <button class="country-card" data-country="Saudi Arabia"><span class="flag">🇸🇦</span><strong>Saudi Arabia</strong><small>View jobs →</small></button>
-        <button class="country-card" data-country="UAE"><span class="flag">🇦🇪</span><strong>UAE / Dubai</strong><small>View jobs →</small></button>
-        <button class="country-card" data-country="Kuwait"><span class="flag">🇰🇼</span><strong>Kuwait</strong><small>View jobs →</small></button>
-        <button class="country-card" data-country="Oman"><span class="flag">🇴🇲</span><strong>Oman</strong><small>View jobs →</small></button>
-        <button class="country-card" data-country="Bahrain"><span class="flag">🇧🇭</span><strong>Bahrain</strong><small>View jobs →</small></button>
+        <button class="country-card" data-country="Saudi Arabia">
+          <span class="flag">🇸🇦</span><strong>Saudi Arabia</strong><small>View jobs →</small>
+        </button>
+
+        <button class="country-card" data-country="UAE">
+          <span class="flag">🇦🇪</span><strong>UAE / Dubai</strong><small>View jobs →</small>
+        </button>
+
+        <button class="country-card" data-country="Kuwait">
+          <span class="flag">🇰🇼</span><strong>Kuwait</strong><small>View jobs →</small>
+        </button>
+
+        <button class="country-card" data-country="Oman">
+          <span class="flag">🇴🇲</span><strong>Oman</strong><small>View jobs →</small>
+        </button>
+
+        <button class="country-card" data-country="Bahrain">
+          <span class="flag">🇧🇭</span><strong>Bahrain</strong><small>View jobs →</small>
+        </button>
       </div>
+
     </div>
   </section>
 
+  <!-- LATEST JOBS -->
   <section id="jobs" class="section jobs-section">
     <div class="container">
+
       <div class="section-heading">
-        <div><span class="eyebrow">FRESH OPPORTUNITIES</span><h2>Latest Gulf Jobs</h2></div>
+        <div>
+          <span class="eyebrow">FRESH OPPORTUNITIES</span>
+          <h2>Latest Gulf Jobs</h2>
+        </div>
         <span class="pill" id="jobCount">Loading jobs…</span>
       </div>
-      <div id="jobList" class="job-grid"><div class="empty-state">Loading current opportunities…</div></div>
-      <div id="noJobs" class="empty-state hidden">Abhi koi job listed nahi hai. Nayi vacancies ke liye baad mein check karein.</div>
+
+      <div id="jobList" class="job-grid">
+        <div class="empty-state">Loading current opportunities…</div>
+      </div>
+
+      <div id="noJobs" class="empty-state hidden">
+        Abhi koi job listed nahi hai. Nayi vacancies ke liye baad mein check karein.
+      </div>
+
     </div>
   </section>
 
   <!-- PREMIUM SUCCESS LEADERBOARD -->
   <section id="success-stories" class="section success-section">
     <div class="container">
+
       <div class="success-heading">
         <span class="eyebrow">✦ REAL CANDIDATE UPDATES ✦</span>
         <h2>Our <span>Success</span> Leaderboard</h2>
-        <p>Celebrating candidates selected for Gulf career opportunities. Every published update represents a candidate shared by our admin team.</p>
+        <p>Celebrating candidates selected for Gulf career opportunities. Candidate updates are displayed according to publication settings managed by our admin team.</p>
       </div>
 
       <div class="leaderboard-banner">
         <span class="leaderboard-crown" aria-hidden="true">🏆</span>
         <h3>GULFJOBSINDIA HONOUR BOARD</h3>
-        <p>Dedicated to new beginnings and career achievements</p>
-        <div class="leaderboard-status"><i></i> ADMIN-PUBLISHED UPDATES</div>
+        <p>Celebrating new beginnings and career achievements</p>
+
+        <div class="leaderboard-status">
+          <i></i>
+          ADMIN-PUBLISHED UPDATES
+        </div>
       </div>
 
-      <!-- IMPORTANT: app.js ke liye existing IDs same rakhe gaye hain -->
+      <!-- Existing IDs retained for app.js -->
       <div id="successStories" class="success-grid leaderboard-grid" aria-live="polite">
         <div class="empty-state">Loading selected candidates…</div>
       </div>
@@ -459,64 +725,142 @@
       </div>
 
       <p class="leaderboard-footer">
-        <span>🔒 Privacy first:</span> Public par sirf approved candidate information dikhayi jayegi.
-        Contact details aur documents private rahenge.
+        <span>🔒 Privacy first:</span>
+        Public par sirf approved candidate information dikhayi jaye.
+        Contact details aur documents private rahne chahiye.
       </p>
+
     </div>
   </section>
 
+  <!-- HOW TO APPLY -->
   <section id="how" class="section how-section">
     <div class="container">
-      <div class="section-heading"><div><span class="eyebrow">SIMPLE PROCESS</span><h2>How to Apply</h2></div></div>
-      <div class="steps-grid">
-        <article class="step"><span>01</span><h3>Choose a Job</h3><p>Read the salary, location, eligibility and last date carefully.</p></article>
-        <article class="step"><span>02</span><h3>Prepare One PDF</h3><p>Combine your required documents into one PDF, up to 10 MB.</p></article>
-        <article class="step"><span>03</span><h3>Submit Application</h3><p>Enter your name and phone number, attach the PDF and submit.</p></article>
+
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">SIMPLE PROCESS</span>
+          <h2>How to Apply</h2>
+        </div>
       </div>
+
+      <div class="steps-grid">
+        <article class="step">
+          <span>01</span>
+          <h3>Choose a Job</h3>
+          <p>Read the salary, location, eligibility and last date carefully.</p>
+        </article>
+
+        <article class="step">
+          <span>02</span>
+          <h3>Prepare One PDF</h3>
+          <p>Combine your required documents into one PDF, up to 10 MB.</p>
+        </article>
+
+        <article class="step">
+          <span>03</span>
+          <h3>Submit Application</h3>
+          <p>Enter your name and phone number, attach the PDF and submit.</p>
+        </article>
+      </div>
+
     </div>
   </section>
 
+  <!-- APPLICATION FORM -->
   <section id="apply" class="section apply-section">
     <div class="container apply-layout">
+
       <div>
         <span class="eyebrow">START YOUR APPLICATION</span>
         <h2>Apply in a Few Steps</h2>
         <p>Keep the form simple. Only your name, mobile number and one PDF are required. Email is optional.</p>
+
         <div class="secure-note">
           <span>🔒</span>
-          <div><strong>Your document is private</strong><p>Uploaded documents are stored in private storage and can only be reviewed through the admin panel.</p></div>
+          <div>
+            <strong>Your document is private</strong>
+            <p>Uploaded documents are stored in private storage and can only be reviewed through the admin panel.</p>
+          </div>
         </div>
       </div>
 
       <form id="applicationForm" class="form-card">
         <h3>Candidate Application</h3>
-        <label>Full name <span>*</span><input name="candidate_name" required maxlength="100" placeholder="Enter your full name"></label>
-        <label>Mobile number <span>*</span><input name="phone" required maxlength="20" inputmode="tel" placeholder="+91 98765 43210"></label>
-        <label>Email <small>(optional)</small><input name="email" type="email" maxlength="160" placeholder="you@example.com"></label>
-        <label>Applying for <span>*</span><select name="job_id" id="applyJob" required><option value="">Select a published job</option></select></label>
-        <label>Documents — one PDF only <span>*</span><input name="document" type="file" accept="application/pdf,.pdf" required><small>Combine passport copy, photo, CV and relevant certificates in one PDF. Maximum 10 MB.</small></label>
-        <label>Message <small>(optional)</small><textarea name="message" rows="2" maxlength="1000" placeholder="Any short note (optional)"></textarea></label>
+
+        <label>
+          Full name <span>*</span>
+          <input name="candidate_name" required maxlength="100" placeholder="Enter your full name">
+        </label>
+
+        <label>
+          Mobile number <span>*</span>
+          <input name="phone" required maxlength="20" inputmode="tel" placeholder="+91 98765 43210">
+        </label>
+
+        <label>
+          Email <small>(optional)</small>
+          <input name="email" type="email" maxlength="160" placeholder="you@example.com">
+        </label>
+
+        <label>
+          Applying for <span>*</span>
+          <select name="job_id" id="applyJob" required>
+            <option value="">Select a published job</option>
+          </select>
+        </label>
+
+        <label>
+          Documents — one PDF only <span>*</span>
+          <input name="document" type="file" accept="application/pdf,.pdf" required>
+          <small>Combine passport copy, photo, CV and relevant certificates in one PDF. Maximum 10 MB.</small>
+        </label>
+
+        <label>
+          Message <small>(optional)</small>
+          <textarea name="message" rows="2" maxlength="1000" placeholder="Any short note (optional)"></textarea>
+        </label>
+
         <button class="btn btn-green full" type="submit" id="submitApplication">Submit Application</button>
         <p id="formMessage" class="form-message" role="status"></p>
         <small>Submit only documents you are comfortable sharing for recruitment purposes.</small>
       </form>
+
     </div>
   </section>
+
 </main>
 
+<!-- FOOTER -->
 <footer class="site-footer">
   <div class="container footer-row">
-    <a class="brand footer-brand" href="/"><span class="brand-mark">GJ</span><span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span></a>
+
+    <a class="brand footer-brand" href="/">
+      <span class="brand-mark">GJ</span>
+      <span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span>
+    </a>
+
     <div>
-      <a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a>
-      <a href="/privacy.html">Privacy Policy</a><a href="/terms.html">Terms</a><a href="/disclaimer.html">Disclaimer</a>
+      <a href="/about.html">About Us</a>
+      <a href="/contact.html">Contact Us</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/disclaimer.html">Disclaimer</a>
     </div>
+
     <p>© <span id="year"></span> GulfJobsIndia. Verify all job details before applying.</p>
+
   </div>
 </footer>
 
-<a class="floating-whatsapp" id="floatingWhatsApp" href="https://wa.me/918576850306" target="_blank" rel="noopener" aria-label="Contact on WhatsApp">☏ <span>WhatsApp</span></a>
+<a class="floating-whatsapp"
+   id="floatingWhatsApp"
+   href="https://wa.me/918576850306"
+   target="_blank"
+   rel="noopener"
+   aria-label="Contact on WhatsApp">☏ <span>WhatsApp</span></a>
 
 <script src="/app.js" defer></script>
+
 </body>
 </html>
