@@ -1,65 +1,21 @@
-# GulfJobsIndia — Setup Guide (Hinglish)
+GulfJobsIndia — Islamic Design + Candidate Updates
 
-Is project mein public job website, admin panel, Cloudflare Worker API, Supabase database aur private PDF uploads hain.
+GitHub project layout expected by wrangler.toml:
+- wrangler.toml at repository root
+- src/index.js (Cloudflare Worker backend)
+- public/ (homepage, CSS, app.js, admin and agent pages)
 
-## Included files
-- `public/index.html` — main website
-- `public/style.css` — Green + Gold responsive design
-- `public/app.js` — job search and candidate application form
-- `public/admin.html`, `public/admin.js` — admin login, job management, applications, agent approval
-- `public/agent.html`, `public/agent.js` — agent registration/login and candidate application submission
-- `public/about.html`, `public/contact.html`, `public/privacy.html`, `public/terms.html`, `public/disclaimer.html` — starter information/policy pages
-- `src/index.js` — backend API
-- `wrangler.toml` — Cloudflare Worker/static assets config
-- `schema.sql` — database reference
+What is included:
+- Islamic green/gold animated homepage design merged with Selected Candidates section.
+- Existing app.js, admin.js, agent pages, backend routes and deployment config retained from CandidateUpdates project.
+- Candidate status Selected creates/updates a public success story; Draft remains controllable from Admin Success Stories.
+- Public stories only include candidate name, job title and country; no phone, email, message or PDF.
 
-## Before deployment
-1. Cloudflare account create/login karein.
-2. Node.js LTS install karein, then terminal/command prompt mein project folder kholein.
-3. `npm install -g wrangler` run karein and `wrangler login`.
-4. Supabase dashboard > Project Settings > API mein Project URL aur service_role key locate karein. Service-role key ko kabhi `public/` folder, GitHub README, ya browser code mein paste NA karein.
-5. Terminal se project folder mein secrets set karein:
-   - `npx wrangler secret put SUPABASE_URL` → Supabase Project URL paste karein.
-   - `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY` → service_role key paste karein.
-   - `npx wrangler secret put ADMIN_PASSWORD` → strong admin password type/paste karein.
-   - `npx wrangler secret put SESSION_SECRET` → long random secret (at least 32 characters) set karein.
-6. Optional email alerts (Resend):
-   - `npx wrangler secret put RESEND_API_KEY`
-   - `npx wrangler secret put NOTIFY_EMAIL`
-   - Optional `npx wrangler secret put EMAIL_FROM`
-   Email sending needs a Resend account and a verified sender/domain for reliable production use. Without these secrets, applications still save but email notification is off.
-7. Check that the Supabase tables `jobs`, `applications` and private bucket `gulf-applications` exist. If not, open Supabase SQL Editor and run `schema.sql`.
-8. Deploy: `npx wrangler deploy`. It uploads the `public/` website and the Worker API together.
-9. Open the `*.workers.dev` URL shown by Wrangler. Public jobs appear only after adding a published job in `/admin.html`.
+Deploy carefully:
+1. Backup your GitHub repository first.
+2. Upload/replace files while preserving these folders: src/ and public/. Keep wrangler.toml at root.
+3. Preserve Cloudflare Worker secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD, SESSION_SECRET (and any optional email secrets).
+4. Run SUCCESS-STORIES-MIGRATION.sql in Supabase only if the success_stories table is not already set up. Do not reset database.
+5. Deploy and test /api/health, jobs list, Admin login, Jobs Publish/Draft, candidate status, and public stories.
 
-## Admin
-Open `https://YOUR-WORKER-URL/admin.html`, log in with `ADMIN_PASSWORD`, add a job, and set status to Published.
-
-## Agent portal
-- Agent portal: `/agent.html`
-- Agents register with email/password and agency details. Registration starts as `pending`; admin must approve them in Admin > Agents.
-- Approved agents can submit candidate applications with one PDF up to 10 MB and can only view their own submitted applications. Agents cannot post jobs.
-- After adding the agent table/column, open Supabase SQL Editor and run the updated `schema.sql` again.
-
-## Candidate form
-Required: full name, mobile number, selected job, and ONE PDF (maximum 10 MB). Email and message are optional. Combine documents into a single PDF.
-
-## Important
-- Never put the Supabase service-role key in any file under `public/`.
-- Keep the bucket private. Documents are opened through short-lived signed links from the authenticated admin API.
-- The admin password is stored as a Cloudflare secret, not in GitHub source files.
-- Before public launch, add abuse protection/rate limiting and review privacy/legal requirements for overseas recruitment.
-- Email notifications are optional; set the Resend secrets to enable them.
-- WhatsApp contact is configured to +91 8576850306 in `wrangler.toml`.
-- This is a starter project and must be tested in your own Cloudflare/Supabase environment before accepting real candidate documents.
-
-
-## Success Stories feature (new)
-1. Supabase SQL Editor mein `SUCCESS-STORIES-MIGRATION.sql` ki poori query ek baar run karein. Existing `agents.id` / `applications.agent_id` types ko change karne ki zaroorat nahi.
-2. Cloudflare Worker ke `src/index.js` aur `public/` folder ki updated files deploy karein.
-3. Admin Panel > Applications mein candidate ko `Selected` karein. Story portal ke Selected Candidates section mein publish ho jayegi.
-4. Admin Panel > Success Stories se story ko `Draft` kar sakte hain; Draft portal se hide rahegi. Dobara `Published` karne par show hogi.
-5. Candidate ka phone, email, message aur PDF public API/section mein expose nahi hote.
-6. Application status ko `Reviewing`, `New` ya `Rejected` karne par uski story automatically Draft ho jayegi. Existing job Publish/Draft/Closed workflow unchanged hai.
-
-Note: Admin `Selected` status ko sirf tab set karein jab aap candidate se phone par confirmation/permission le chuke hon.
+Important: live Cloudflare/Supabase deployment has not been tested from this package.
