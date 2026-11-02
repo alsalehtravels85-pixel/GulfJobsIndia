@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#064e3b">
   <meta name="description" content="Explore Gulf job opportunities in Saudi Arabia, UAE, Kuwait, Oman and Bahrain. Check job details and apply online.">
-  <meta name="robots" content="index,follow">
   <title>GulfJobsIndia — Gulf Jobs & Overseas Careers</title>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -22,13 +21,10 @@
           <path d="M4 54h56" stroke="#f4d477" stroke-width="3" stroke-linecap="round"/>
         </svg>
       </span>
-      <span>GulfJobs<span class="gold">India</span>
-        <small>Gulf Careers • India</small>
-      </span>
+      <span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span>
     </a>
 
-    <button class="menu-toggle" id="menuToggle"
-      aria-label="Open menu" aria-expanded="false" type="button">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
 
     <nav id="mainNav">
       <a href="#jobs">Latest Jobs</a>
@@ -42,7 +38,6 @@
 </header>
 
 <main>
-
   <section class="hero">
     <div class="hero-decor" aria-hidden="true">
       <span class="decor-mosque">🕌</span>
@@ -55,9 +50,7 @@
     <div class="container hero-grid">
       <div class="hero-content">
         <span class="eyebrow">YOUR NEXT CAREER STARTS HERE</span>
-
         <h1>Find Your Next <span class="gold">Gulf Job</span></h1>
-
         <p>Explore job opportunities in the Gulf. Read the details carefully and apply online using one simple form.</p>
 
         <div class="hero-actions">
@@ -83,17 +76,14 @@
           <div class="hero-orbit orbit-one"></div>
           <div class="hero-orbit orbit-two"></div>
           <div class="hero-moon">☾</div>
-
           <div class="hero-skyline">
             <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
           </div>
-
           <div class="hero-flag"><b></b><b></b><b></b></div>
         </div>
 
         <h2>Work Abroad.<br><span class="gold">Build Your Future.</span></h2>
         <p>Saudi Arabia · UAE · Kuwait · Oman · Bahrain</p>
-
         <a href="#jobs" class="text-link">View current opportunities ↗</a>
 
         <div class="hero-card-foot">
@@ -107,10 +97,8 @@
   <section class="search-section">
     <div class="container search-box">
       <label class="search-label" for="searchInput">Find a job</label>
-
       <div class="search-controls">
-        <input id="searchInput" type="search"
-          placeholder="Job title, company or city…">
+        <input id="searchInput" type="search" placeholder="Job title, company or city…">
 
         <select id="countryFilter" aria-label="Filter by country">
           <option value="">All countries</option>
@@ -121,7 +109,7 @@
           <option>Bahrain</option>
         </select>
 
-        <button class="btn btn-green" id="searchBtn" type="button">Search Jobs</button>
+        <button class="btn btn-green" id="searchBtn">Search Jobs</button>
       </div>
     </div>
   </section>
@@ -137,34 +125,20 @@
       </div>
 
       <div class="country-grid">
-        <button class="country-card" data-country="Saudi Arabia" type="button">
-          <span class="flag">🇸🇦</span>
-          <strong>Saudi Arabia</strong>
-          <small>View jobs →</small>
+        <button class="country-card" data-country="Saudi Arabia">
+          <span class="flag">🇸🇦</span><strong>Saudi Arabia</strong><small>View jobs →</small>
         </button>
-
-        <button class="country-card" data-country="UAE" type="button">
-          <span class="flag">🇦🇪</span>
-          <strong>UAE / Dubai</strong>
-          <small>View jobs →</small>
+        <button class="country-card" data-country="UAE">
+          <span class="flag">🇦🇪</span><strong>UAE / Dubai</strong><small>View jobs →</small>
         </button>
-
-        <button class="country-card" data-country="Kuwait" type="button">
-          <span class="flag">🇰🇼</span>
-          <strong>Kuwait</strong>
-          <small>View jobs →</small>
+        <button class="country-card" data-country="Kuwait">
+          <span class="flag">🇰🇼</span><strong>Kuwait</strong><small>View jobs →</small>
         </button>
-
-        <button class="country-card" data-country="Oman" type="button">
-          <span class="flag">🇴🇲</span>
-          <strong>Oman</strong>
-          <small>View jobs →</small>
+        <button class="country-card" data-country="Oman">
+          <span class="flag">🇴🇲</span><strong>Oman</strong><small>View jobs →</small>
         </button>
-
-        <button class="country-card" data-country="Bahrain" type="button">
-          <span class="flag">🇧🇭</span>
-          <strong>Bahrain</strong>
-          <small>View jobs →</small>
+        <button class="country-card" data-country="Bahrain">
+          <span class="flag">🇧🇭</span><strong>Bahrain</strong><small>View jobs →</small>
         </button>
       </div>
     </div>
@@ -194,12 +168,9 @@
     <div class="container">
       <div class="section-heading">
         <div>
-          <span class="eyebrow">REAL CANDIDATE UPDATES</span>
-          <h2>Selected Candidates</h2>
-          <p class="section-intro">
-            Candidates marked as selected by our admin team.
-            Personal contact details and documents are never shown here.
-          </p>
+          <span class="eyebrow">CANDIDATE UPDATES</span>
+          <h2>🎉 Selected Candidates</h2>
+          <p class="section-intro">Candidates marked as selected by our admin team. Personal contact details and documents are never shown here.</p>
         </div>
         <span class="pill" id="storyCount">Loading…</span>
       </div>
@@ -210,6 +181,13 @@
 
       <div id="noStories" class="empty-state hidden">
         Abhi selected candidates ki updates available nahi hain.
+      </div>
+
+      <div class="show-more-wrap">
+        <button id="showMoreStories" class="btn btn-green show-more hidden"
+          type="button" aria-expanded="false">
+          Show More Candidates ↓
+        </button>
       </div>
     </div>
   </section>
@@ -229,13 +207,11 @@
           <h3>Choose a Job</h3>
           <p>Read the salary, location, eligibility and last date carefully.</p>
         </article>
-
         <article class="step">
           <span>02</span>
           <h3>Prepare One PDF</h3>
           <p>Combine your required documents into one PDF, up to 10 MB.</p>
         </article>
-
         <article class="step">
           <span>03</span>
           <h3>Submit Application</h3>
@@ -265,18 +241,15 @@
         <h3>Candidate Application</h3>
 
         <label>Full name <span>*</span>
-          <input name="candidate_name" required maxlength="100"
-            placeholder="Enter your full name">
+          <input name="candidate_name" required maxlength="100" placeholder="Enter your full name">
         </label>
 
         <label>Mobile number <span>*</span>
-          <input name="phone" required maxlength="20" inputmode="tel"
-            placeholder="+91 98765 43210">
+          <input name="phone" required maxlength="20" inputmode="tel" placeholder="+91 98765 43210">
         </label>
 
         <label>Email <small>(optional)</small>
-          <input name="email" type="email" maxlength="160"
-            placeholder="you@example.com">
+          <input name="email" type="email" maxlength="160" placeholder="you@example.com">
         </label>
 
         <label>Applying for <span>*</span>
@@ -291,29 +264,22 @@
         </label>
 
         <label>Message <small>(optional)</small>
-          <textarea name="message" rows="2" maxlength="1000"
-            placeholder="Any short note (optional)"></textarea>
+          <textarea name="message" rows="2" maxlength="1000" placeholder="Any short note (optional)"></textarea>
         </label>
 
-        <button class="btn btn-green full" type="submit" id="submitApplication">
-          Submit Application
-        </button>
-
+        <button class="btn btn-green full" type="submit" id="submitApplication">Submit Application</button>
         <p id="formMessage" class="form-message" role="status"></p>
         <small>Submit only documents you are comfortable sharing for recruitment purposes.</small>
       </form>
     </div>
   </section>
-
 </main>
 
 <footer class="site-footer">
   <div class="container footer-row">
     <a class="brand footer-brand" href="/">
       <span class="brand-mark">GJ</span>
-      <span>GulfJobs<span class="gold">India</span>
-        <small>Gulf Careers • India</small>
-      </span>
+      <span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span>
     </a>
 
     <div>
