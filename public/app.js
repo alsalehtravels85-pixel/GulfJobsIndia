@@ -414,3 +414,45 @@ $("#applicationForm")?.addEventListener("submit", async event => {
 
 loadJobs();
 loadSuccessStories();
+/* Show maximum 8 jobs initially; show remaining on button click */
+(function () {
+const jobList = document.getElementById("jobList");
+const moreBtn = document.getElementById("moreJobsBtn");
+
+if (!jobList || !moreBtn) return;
+
+let expanded = false;
+
+function updateJobsView() {
+const cards = Array.from(jobList.children).filter(
+el => el.classList.contains("job-card")
+);
+
+cards.forEach((card, index) => {
+  card.style.display = (!expanded && index >= 8) ? "none" : "";
+});
+
+moreBtn.style.display = cards.length > 8 ? "block" : "none";
+moreBtn.textContent = expanded ? "Show Less ↑" : "More Jobs ↓";
+
+}
+
+moreBtn.addEventListener("click", function () {
+expanded = !expanded;
+updateJobsView();
+
+if (!expanded) {
+  document.getElementById("jobs").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+});
+
+new MutationObserver(updateJobsView).observe(jobList, {
+childList: true
+});
+
+updateJobsView();
+})();
