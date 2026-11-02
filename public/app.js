@@ -1,121 +1,416 @@
 const API = "";
 const WA = "918576850306";
+const INITIAL_STORIES = 8;
+
 let allJobs = [];
+let allStories = [];
+let showAllStories = false;
 
-const escapeHtml = (s = "") => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const $ = selector => document.querySelector(selector);
+
+const escapeHtml = (value = "") =>
+  String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+
 function waLink(job) {
-  const msg = job ? `Hello, I am interested in the ${job.title} job in ${job.country}. Please share verified details.` : "Hello, I would like information about Gulf job opportunities.";
-  return `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
+  const message = job
+    ? `Hello, I am interested in the ${job.title} job in ${job.country}. Please share verified details.`
+    : "Hello, I would like information about Gulf job opportunities.";
+
+  return `https://wa.me/${WA}?text=${encodeURIComponent(message)}`;
 }
-function jobCard(j) {
-  const desc = (j.description || "").length > 230 ? j.description.slice(0, 230) + "…" : (j.description || "");
-  const salary = j.salary ? `<span>💰 ${escapeHtml(j.salary)}</span>` : "";
-  const city = j.city ? `<span>📍 ${escapeHtml(j.city)}</span>` : "";
-  const exp = j.experience ? `<span>🧰 ${escapeHtml(j.experience)}</span>` : "";
-  const date = j.last_date ? `<span>📅 Last date: ${escapeHtml(j.last_date)}</span>` : "";
-  return `<article class="job-card">
-    <div class="job-card-top"><div><h3>${escapeHtml(j.title)}</h3><div class="job-company">${escapeHtml(j.company_name || "Employer details available on request")}</div></div><span class="job-country">${escapeHtml(j.country)}</span></div>
-    <div class="job-meta">${salary}${city}${exp}${date}</div><p class="job-description">${escapeHtml(desc)}</p>
-    ${j.qualification ? `<p class="job-description"><strong>Qualification:</strong> ${escapeHtml(j.qualification)}</p>` : ""}
-    <div class="job-actions"><button class="btn btn-green apply-job" data-id="${escapeHtml(j.id)}">Apply Now</button><a class="btn btn-whatsapp" href="${waLink(j)}" target="_blank" rel="noopener">WhatsApp</a></div>
-  </article>`;
+
+/* JOB CARDS */
+
+function jobCard(job) {
+  const description = String(job.description || "");
+  const shortDescription = description.length > 180
+    ? description.slice(0, 180) + "…"
+    : description;
+
+  const salary = job.salary
+    ? `<span>💰 ${escapeHtml(job.salary)}</span>` : "";
+
+  const city = job.city
+    ? `<span>📍 ${escapeHtml(job.city)}</span>` : "";
+
+  const experience = job.experience
+    ? `<span>🧰 ${escapeHtml(job.experience)}</span>` : "";
+
+  const lastDate = job.last_date
+    ? `<span>📅 Last date: ${escapeHtml(job.last_date)}</span>` : "";
+
+  const qualification = job.qualification
+    ? `<p class="job-description"><strong>Qualification:</strong> ${escapeHtml(job.qualification)}</p>`
+    : "";
+
+  return `
+    <article class="job-card">
+      <div class="job-card-top">
+        <div>
+          <h3>${escapeHtml(job.title || "Gulf Job")}</h3>
+          <div class="job-company">
+            ${escapeHtml(job.company_name || "Employer details available on request")}
+          </div>
+        </div>
+        <span class="job-country">${escapeHtml(job.country || "Gulf")}</span>
+      </div>
+
+      <div class="job-meta">
+        ${salary}${city}${experience}${lastDate}
+      </div>
+
+      ${shortDescription
+        ? `<p class="job-description">${escapeHtml(shortDescription)}</p>`
+        : ""}
+
+      ${qualification}
+
+      <div class="job-actions">
+        <button class="btn btn-green apply-job" type="button"
+          data-id="${escapeHtml(job.id)}">Apply Now</button>
+
+        <a class="btn btn-whatsapp" href="${waLink(job)}"
+          target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </article>
+  `;
 }
+
+/* JOB SEARCH AND FILTER */
+
 function renderJobs() {
-  const q = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
-  const country = document.getElementById("countryFilter")?.value || "";
-  const filtered = allJobs.filter(j => (!country || j.country === country) &&
-    (!q || [j.title,j.company_name,j.city,j.country,j.description,j.qualification].some(v => String(v || "").toLowerCase().includes(q))));
-  const list = document.getElementById("jobList");
-  list.innerHTML = filtered.length ? filtered.map(jobCard).join("") : "";
-  document.getElementById("noJobs").classList.toggle("hidden", filtered.length > 0);
-  document.getElementById("jobCount").textContent = `${filtered.length} ${filtered.length === 1 ? "job" : "jobs"}`;
-  const select = document.getElementById("applyJob");
-  const selected = select.value;
-  select.innerHTML = `<option value="">Select a published job</option>` + allJobs.map(j => `<option value="${escapeHtml(j.id)}">${escapeHtml(j.title)} — ${escapeHtml(j.country)}</option>`).join("");
-  if (allJobs.some(j => j.id === selected)) select.value = selected;
+  const jobList = $("#jobList");
+  const noJobs = $("#noJobs");
+  const jobCount = $("#jobCount");
+  const applySelect = $("#applyJob");
+
+  if (!jobList || !noJobs || !jobCount || !applySelect) return;
+
+  const query = ($("#searchInput")?.value || "").toLowerCase().trim();
+  const country = $("#countryFilter")?.value || "";
+
+  const filtered = allJobs.filter(job => {
+    const countryMatches = !country || job.country === country;
+
+    const text = [
+      job.title,
+      job.company_name,
+      job.city,
+      job.country,
+      job.description,
+      job.qualification
+    ].map(value => String(value || "").toLowerCase()).join(" ");
+
+    return countryMatches && (!query || text.includes(query));
+  });
+
+  jobList.innerHTML = filtered.length
+    ? filtered.map(jobCard).join("")
+    : "";
+
+  noJobs.classList.toggle("hidden", filtered.length > 0);
+
+  jobCount.textContent =
+    `${filtered.length} ${filtered.length === 1 ? "job" : "jobs"}`;
+
+  const previousSelection = applySelect.value;
+
+  applySelect.innerHTML =
+    `<option value="">Select a published job</option>` +
+    allJobs.map(job => `
+      <option value="${escapeHtml(job.id)}">
+        ${escapeHtml(job.title || "Gulf Job")} — ${escapeHtml(job.country || "Gulf")}
+      </option>
+    `).join("");
+
+  if (allJobs.some(job => String(job.id) === previousSelection)) {
+    applySelect.value = previousSelection;
+  }
 }
+
 async function loadJobs() {
-  const list = document.getElementById("jobList");
+  const jobList = $("#jobList");
+  const jobCount = $("#jobCount");
+
   try {
-    const r = await fetch(`${API}/api/jobs`);
-    if (!r.ok) throw new Error("Could not load jobs");
-    allJobs = await r.json();
+    const response = await fetch(`${API}/api/jobs`);
+
+    if (!response.ok) throw new Error("Could not load jobs");
+
+    const jobs = await response.json();
+
+    if (!Array.isArray(jobs)) throw new Error("Invalid jobs response");
+
+    allJobs = jobs;
     renderJobs();
-  } catch {
-    list.innerHTML = `<div class="empty-state">Jobs abhi load nahi ho rahe. Cloudflare deployment aur Supabase settings check karein.</div>`;
-    document.getElementById("jobCount").textContent = "Jobs unavailable";
+  } catch (error) {
+    console.error("Jobs loading error:", error);
+
+    if (jobList) {
+      jobList.innerHTML = `
+        <div class="empty-state">
+          Jobs abhi load nahi ho rahe. Deployment aur API settings check karein.
+        </div>`;
+    }
+
+    if (jobCount) jobCount.textContent = "Jobs unavailable";
   }
 }
-document.addEventListener("click", e => {
-  const apply = e.target.closest(".apply-job");
-  if (apply) {
-    document.getElementById("applyJob").value = apply.dataset.id;
-    document.getElementById("apply").scrollIntoView({ behavior: "smooth" });
-  }
-  const country = e.target.closest("[data-country]");
-  if (country) {
-    document.getElementById("countryFilter").value = country.dataset.country;
-    document.getElementById("jobs").scrollIntoView({ behavior: "smooth" });
-    renderJobs();
-  }
-});
-document.getElementById("menuToggle")?.addEventListener("click", () => document.getElementById("mainNav").classList.toggle("open"));
-document.querySelectorAll("#mainNav a").forEach(a => a.addEventListener("click", () => document.getElementById("mainNav").classList.remove("open")));
-document.getElementById("searchBtn")?.addEventListener("click", renderJobs);
-document.getElementById("searchInput")?.addEventListener("input", renderJobs);
-document.getElementById("countryFilter")?.addEventListener("change", renderJobs);
-document.getElementById("year").textContent = new Date().getFullYear();
 
-document.getElementById("applicationForm")?.addEventListener("submit", async e => {
-  e.preventDefault();
-  const form = e.currentTarget, message = document.getElementById("formMessage"), btn = document.getElementById("submitApplication");
-  message.className = "form-message"; message.textContent = "";
-  const file = form.elements.document.files[0];
-  if (!file || file.size > 10 * 1024 * 1024 || (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf"))) {
-    message.classList.add("error"); message.textContent = "Ek valid PDF select karein (maximum 10 MB)."; return;
-  }
-  btn.disabled = true; btn.textContent = "Submitting…";
-  try {
-    const r = await fetch("/api/applications", { method: "POST", body: new FormData(form) });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || "Application submit nahi hui.");
-    form.reset(); message.classList.add("success"); message.textContent = data.message || "Application submit ho gayi.";
-  } catch (err) {
-    message.classList.add("error"); message.textContent = err.message || "Network error. Dobara try karein.";
-  } finally { btn.disabled = false; btn.textContent = "Submit Application"; }
-});
-loadJobs();
+/* SELECTED CANDIDATE CARDS */
 
+function storyCard(story, index) {
+  const name = String(story.candidate_name || "Candidate").trim();
+  const initial = name.charAt(0).toUpperCase() || "C";
+
+  const palettes = [
+    "story-green",
+    "story-gold",
+    "story-blue",
+    "story-purple",
+    "story-orange"
+  ];
+
+  const palette = palettes[index % palettes.length];
+
+  return `
+    <article class="success-card ${palette}">
+      <div class="success-card-top">
+        <span class="success-confetti" aria-hidden="true">✦</span>
+        <span class="success-badge">✓ SELECTED</span>
+      </div>
+
+      <div class="success-avatar" aria-hidden="true">
+        ${escapeHtml(initial)}
+      </div>
+
+      <div class="success-card-body">
+        <h3>${escapeHtml(name)}</h3>
+        <p class="success-job">${escapeHtml(story.job_title || "Gulf Job")}</p>
+        <p class="success-country">🌍 ${escapeHtml(story.country || "Gulf")}</p>
+      </div>
+
+      <div class="success-congrats">🎉 Congratulations!</div>
+    </article>
+  `;
+}
+
+function renderSuccessStories() {
+  const list = $("#successStories");
+  const count = $("#storyCount");
+  const empty = $("#noStories");
+  const button = $("#showMoreStories");
+
+  if (!list) return;
+
+  const total = allStories.length;
+  const visible = showAllStories
+    ? allStories
+    : allStories.slice(0, INITIAL_STORIES);
+
+  if (count) count.textContent = `${total} selected`;
+
+  list.innerHTML = visible
+    .map((story, index) => storyCard(story, index))
+    .join("");
+
+  if (empty) {
+    empty.classList.toggle("hidden", total > 0);
+  }
+
+  if (button) {
+    const hasMore = total > INITIAL_STORIES;
+
+    button.classList.toggle("hidden", !hasMore);
+    button.setAttribute("aria-expanded", String(showAllStories));
+
+    button.textContent = showAllStories
+      ? "Show Less ↑"
+      : "Show More Candidates ↓";
+  }
+}
 
 async function loadSuccessStories() {
-  const list = document.querySelector("#successStories");
-  const count = document.querySelector("#storyCount");
-  const empty = document.querySelector("#noStories");
+  const list = $("#successStories");
+  const count = $("#storyCount");
+  const empty = $("#noStories");
+
   if (!list) return;
+
   try {
-    const response = await fetch("/api/success-stories");
+    const response = await fetch(`${API}/api/success-stories`);
+
     if (!response.ok) throw new Error("Stories unavailable");
+
     const stories = await response.json();
-    count.textContent = `${stories.length} selected`;
-    list.innerHTML = stories.length ? stories.map(story => `
-      <article class="success-card">
-        <div class="success-avatar" aria-hidden="true">${escapeHtml((story.candidate_name || "C").trim().charAt(0).toUpperCase())}</div>
-        <div class="success-card-body">
-          <span class="success-badge">✓ Selected</span>
-          <h3>${escapeHtml(story.candidate_name || "Candidate")}</h3>
-          <p class="success-job">${escapeHtml(story.job_title || "Gulf Job")}</p>
-          <p class="success-country">${escapeHtml(story.country || "Gulf")}</p>
-        </div>
-      </article>`).join("") : "";
-    empty?.classList.toggle("hidden", stories.length > 0);
-    if (!stories.length) list.innerHTML = "";
-  } catch (_) {
-    count.textContent = "Updates";
+
+    if (!Array.isArray(stories)) throw new Error("Invalid candidate response");
+
+    allStories = stories;
+    showAllStories = false;
+
+    renderSuccessStories();
+  } catch (error) {
+    console.error("Candidate updates loading error:", error);
+
+    if (count) count.textContent = "Updates";
+
     list.innerHTML = "";
+
     if (empty) {
       empty.textContent = "Candidate updates abhi load nahi ho paayi.";
       empty.classList.remove("hidden");
     }
+
+    $("#showMoreStories")?.classList.add("hidden");
   }
 }
+
+/* SHOW MORE / SHOW LESS */
+
+$("#showMoreStories")?.addEventListener("click", () => {
+  showAllStories = !showAllStories;
+  renderSuccessStories();
+});
+
+/* APPLY BUTTON AND COUNTRY CARDS */
+
+document.addEventListener("click", event => {
+  const applyButton = event.target.closest(".apply-job");
+
+  if (applyButton) {
+    const select = $("#applyJob");
+
+    if (select) select.value = applyButton.dataset.id || "";
+
+    $("#apply")?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  const countryButton = event.target.closest("[data-country]");
+
+  if (countryButton) {
+    const filter = $("#countryFilter");
+
+    if (filter) filter.value = countryButton.dataset.country || "";
+
+    $("#jobs")?.scrollIntoView({ behavior: "smooth" });
+    renderJobs();
+  }
+});
+
+/* MOBILE MENU */
+
+const menuToggle = $("#menuToggle");
+const mainNav = $("#mainNav");
+
+menuToggle?.addEventListener("click", () => {
+  if (!mainNav) return;
+
+  const isOpen = mainNav.classList.toggle("open");
+
+  menuToggle.setAttribute("aria-expanded", String(isOpen));
+  menuToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+});
+
+mainNav?.querySelectorAll("a").forEach(link => {
+  link.addEventListener("click", () => {
+    mainNav.classList.remove("open");
+    menuToggle?.setAttribute("aria-expanded", "false");
+    menuToggle?.setAttribute("aria-label", "Open menu");
+  });
+});
+
+/* SEARCH EVENTS */
+
+$("#searchBtn")?.addEventListener("click", renderJobs);
+$("#searchInput")?.addEventListener("input", renderJobs);
+$("#countryFilter")?.addEventListener("change", renderJobs);
+
+/* FOOTER YEAR */
+
+if ($("#year")) {
+  $("#year").textContent = new Date().getFullYear();
+}
+
+/* APPLICATION FORM */
+
+$("#applicationForm")?.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const message = $("#formMessage");
+  const button = $("#submitApplication");
+
+  if (!message || !button) return;
+
+  message.className = "form-message";
+  message.textContent = "";
+
+  const file = form.elements.namedItem("document")?.files?.[0];
+
+  if (!file) {
+    message.classList.add("error");
+    message.textContent = "Apni PDF file select karein.";
+    return;
+  }
+
+  const isPdf =
+    file.type === "application/pdf" ||
+    file.name.toLowerCase().endsWith(".pdf");
+
+  if (!isPdf || file.size > 10 * 1024 * 1024) {
+    message.classList.add("error");
+    message.textContent = "Ek valid PDF select karein (maximum 10 MB).";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Submitting…";
+
+  try {
+    const response = await fetch(`${API}/api/applications`, {
+      method: "POST",
+      body: new FormData(form)
+    });
+
+    let data = {};
+
+    try {
+      data = await response.json();
+    } catch (_) {
+      data = {};
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || "Application submit nahi hui.");
+    }
+
+    form.reset();
+
+    message.classList.add("success");
+    message.textContent =
+      data.message || "Application successfully submit ho gayi.";
+
+  } catch (error) {
+    console.error("Application submission error:", error);
+
+    message.classList.add("error");
+    message.textContent =
+      error.message || "Network error. Dobara try karein.";
+
+  } finally {
+    button.disabled = false;
+    button.textContent = "Submit Application";
+  }
+});
+
+/* INITIAL LOAD */
+
+loadJobs();
 loadSuccessStories();
