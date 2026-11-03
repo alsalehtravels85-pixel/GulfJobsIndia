@@ -1694,3 +1694,57 @@ button.share-btn:hover,
     background-color: #128C7E !important;
     color: #ffffff !important;
 }
+
+/* GulfJobsIndia - Original Green Gold Theme */
+
+:root {
+  --green: #064e3b;
+  --green-dark: #032c21;
+  --green-light: #087454;
+  --mint: #eaf6ef;
+  --gold: #f4d477;
+  --saffron: #ff9933;
+  --india-green: #138808;
+  --ink: #182a23;
+  --muted: #66766f;
+  --line: #e2ebe5;
+}
+
+/* Dashboard colors only */
+
+.agent-wrap {
+  background: var(--mint);
+}
+
+.agent-topbar,
+.admin-header {
+  background: var(--green-dark);
+  color: #ffffff;
+}
+
+.agent-card,
+.agent-profile,
+.agent-table-wrap {
+  background: #ffffff;
+  border-color: var(--line);
+}
+
+.brand-mark,
+.gold {
+  color: var(--gold);
+}
+
+.btn-green {
+  background: var(--green);
+  color: #ffffff;
+  border-color: var(--green);
+}
+
+.btn-outline {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.agent-msg {
+  border-color: var(--gold);
+}
