@@ -1738,3 +1738,19 @@ button.share-btn:hover,
   border-color: #dcebe1 !important;
 }
 
+/* GulfJobsIndia Job Share Button */
+
+.btn-share {
+  background: #f4d477 !important;
+  color: #032c21 !important;
+  border: 1px solid #d6b84e !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+}
+
+.btn-share:hover {
+  background: #ff9933 !important;
+  color: #ffffff !important;
+}
+
