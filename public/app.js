@@ -50,7 +50,7 @@ function jobCard(job) {
     : "";
 
   return `
-    <article class="job-card">
+    <article class="job-card" data-job-id="${escapeHtml(job.id)}">
       <div class="job-card-top">
         <div>
           <h3>${escapeHtml(job.title || "Gulf Job")}</h3>
@@ -65,19 +65,30 @@ function jobCard(job) {
         ${salary}${city}${experience}${lastDate}
       </div>
 
-      ${shortDescription
-        ? `<p class="job-description">${escapeHtml(shortDescription)}</p>`
-        : ""}
+      ${(new URLSearchParams(window.location.search).get("job") === String(job.id)
+  ? description
+  : shortDescription)
+  ? `<p class="job-description">${escapeHtml(
+      new URLSearchParams(window.location.search).get("job") === String(job.id)
+        ? description
+        : shortDescription
+    )}</p>`
+  : ""}
 
       ${qualification}
 
       <div class="job-actions">
-        <button class="btn btn-green apply-job" type="button"
-          data-id="${escapeHtml(job.id)}">Apply Now</button>
+  <button class="btn btn-green apply-job" type="button"
+    data-id="${escapeHtml(job.id)}">Apply Now</button>
 
-        <a class="btn btn-whatsapp" href="${waLink(job)}"
-          target="_blank" rel="noopener">WhatsApp</a>
-      </div>
+  <a class="btn btn-whatsapp" href="${waLink(job)}"
+    target="_blank" rel="noopener">WhatsApp</a>
+
+  <button class="btn btn-share" type="button"
+    data-share-job="${escapeHtml(job.id)}">
+    ↗ Share
+  </button>
+</div>
     </article>
   `;
 }
@@ -133,7 +144,25 @@ function renderJobs() {
     applySelect.value = previousSelection;
   }
 }
+function openSharedJobFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const jobId = params.get("job");
 
+  if (!jobId) return;
+
+  const card = Array.from(
+    document.querySelectorAll(".job-card")
+  ).find(item => item.dataset.jobId === jobId);
+
+  if (card) {
+    setTimeout(() => {
+      card.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }, 300);
+  }
+}
 async function loadJobs() {
   const jobList = $("#jobList");
   const jobCount = $("#jobCount");
@@ -148,7 +177,8 @@ async function loadJobs() {
     if (!Array.isArray(jobs)) throw new Error("Invalid jobs response");
 
     allJobs = jobs;
-    renderJobs();
+renderJobs();
+openSharedJobFromUrl();
   } catch (error) {
     console.error("Jobs loading error:", error);
 
@@ -282,6 +312,50 @@ $("#showMoreStories")?.addEventListener("click", () => {
 /* APPLY BUTTON AND COUNTRY CARDS */
 
 document.addEventListener("click", event => {
+    const shareButton = event.target.closest("[data-share-job]");
+
+  if (shareButton) {
+    const jobId = shareButton.dataset.shareJob;
+
+    const job = allJobs.find(
+      item => String(item.id) === String(jobId)
+    );
+
+    if (!job) return;
+
+    const shareUrl = new URL(window.location.href);
+    shareUrl.search = "";
+    shareUrl.searchParams.set("job", String(job.id));
+    shareUrl.hash = "jobs";
+
+    const message =
+      `${job.title || "Gulf Job"}\n` +
+      `Country: ${job.country || "Gulf"}\n` +
+      `Company: ${job.company_name || ""}\n` +
+      `Job Details: ${shareUrl.toString()}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: job.title || "Gulf Job",
+        text: message,
+        url: shareUrl.toString()
+      }).catch(error => {
+        if (error.name !== "AbortError") {
+          window.open(
+            "https://wa.me/?text=" + encodeURIComponent(message),
+            "_blank"
+          );
+        }
+      });
+    } else {
+      window.open(
+        "https://wa.me/?text=" + encodeURIComponent(message),
+        "_blank"
+      );
+    }
+
+    return;
+  }
   const applyButton = event.target.closest(".apply-job");
 
   if (applyButton) {
