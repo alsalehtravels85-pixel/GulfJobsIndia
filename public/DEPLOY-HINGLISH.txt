@@ -1,0 +1,10 @@
+GulfJobsIndia — Cloudflare Pages Upload
+
+1. Cloudflare Dashboard > Workers & Pages > Pages > gulfjobsindia > Create deployment / Upload assets.
+2. Upload this ZIP (or extract it and upload the folder contents).
+3. Keep the existing Worker active: https://gulfjobsindia.gulfjob.workers.dev
+4. Do NOT delete the Worker or change Supabase secrets/database/storage.
+5. Pages URL remains https://gulfjobsindia.pages.dev/
+
+Frontend API URLs in app.js, admin.js and agent.js point to the confirmed existing Worker.
+This package keeps the existing page files, admin/agent code and API route logic; the redesign changes the public homepage presentation and CSS only.

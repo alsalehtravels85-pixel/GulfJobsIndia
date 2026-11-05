@@ -1,4 +1,4 @@
-const API = "";
+const API = "https://gulfjobsindia.gulfjob.workers.dev";
 const WA = "918576850306";
 const INITIAL_STORIES = 8;
 
@@ -484,49 +484,140 @@ $("#applicationForm")?.addEventListener("submit", async event => {
   }
 });
 
+/* PUBLIC APPLICATION STATUS LOOKUP */
+$("#statusCheckForm")?.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const phoneInput = form.elements.namedItem("phone");
+  const message = $("#statusCheckMessage");
+  const results = $("#statusResults");
+  const button = $("#checkStatusBtn");
+  const phone = String(phoneInput?.value || "").trim();
+  const digits = phone.replace(/\D/g, "");
+  const tenDigit = digits.length === 12 && digits.startsWith("91")
+    ? digits.slice(2)
+    : digits.length === 11 && digits.startsWith("0")
+      ? digits.slice(1)
+      : digits;
+
+  if (!/^[6-9]\d{9}$/.test(tenDigit)) {
+    message.className = "form-message error";
+    message.textContent = "Please valid 10-digit Indian mobile number enter karein.";
+    results.innerHTML = "";
+    phoneInput?.focus();
+    return;
+  }
+
+  message.className = "form-message";
+  message.textContent = "Application status check ho raha hai…";
+  results.innerHTML = "";
+  button.disabled = true;
+  button.textContent = "Checking…";
+
+  try {
+    const response = await fetch(
+      `${API}/api/application-status?phone=${encodeURIComponent(phone)}`,
+      { method: "GET", headers: { "Accept": "application/json" } }
+    );
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || "Status check nahi ho saka. Dobara try karein.");
+    }
+
+    const applications = Array.isArray(data.applications) ? data.applications : [];
+
+    if (!applications.length) {
+      message.className = "form-message error";
+      message.textContent = "Is mobile number se koi application nahi mili. Wahi number enter karein jo form mein diya tha.";
+      return;
+    }
+
+    message.className = "form-message success";
+    message.textContent = `${applications.length} application${applications.length === 1 ? "" : "s"} mili.`;
+
+    results.innerHTML = applications.map((application, index) => {
+      const status = String(application.status || "Received");
+      const statusClass = status.toLowerCase() === "selected"
+        ? "status-selected"
+        : status.toLowerCase() === "rejected"
+          ? "status-rejected"
+          : "status-received";
+      const applicationDate = application.application_date
+        ? new Date(application.application_date).toLocaleDateString("en-IN", {
+            day: "2-digit", month: "short", year: "numeric"
+          })
+        : "Not available";
+      return `
+        <article class="status-result-card">
+          <div class="status-result-number">Application ${index + 1}</div>
+          <div class="status-result-name">${escapeHtml(application.candidate_name || "Candidate")}</div>
+          <div class="status-result-job">${escapeHtml(application.job_title || "General Application")}</div>
+          <div class="status-result-date">Application Date: ${escapeHtml(applicationDate)}</div>
+          <span class="status-result-badge ${statusClass}">${escapeHtml(status)}</span>
+        </article>
+      `;
+    }).join("");
+
+  } catch (error) {
+    message.className = "form-message error";
+    message.textContent = error.message || "Network error. Dobara try karein.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Check Status";
+  }
+});
+
 /* INITIAL LOAD */
 
 loadJobs();
 loadSuccessStories();
-/* Show maximum 8 jobs initially; show remaining on button click */
+/* SHOW MORE JOBS - FIXED */
 (function () {
-const jobList = document.getElementById("jobList");
-const moreBtn = document.getElementById("moreJobsBtn");
+  const jobList = document.getElementById("jobList");
+  if (!jobList) return;
 
-if (!jobList || !moreBtn) return;
+  let expanded = false;
 
-let expanded = false;
+  // Button ko jobList ke bahar banayein
+  const moreBtn = document.createElement("button");
+  moreBtn.id = "moreJobsBtn";
+  moreBtn.className = "btn btn-green";
+  moreBtn.type = "button";
+  moreBtn.style.cssText = "display:none;margin:20px auto;";
+  moreBtn.textContent = "Show More Jobs ↓";
 
-function updateJobsView() {
-const cards = Array.from(jobList.children).filter(
-el => el.classList.contains("job-card")
-);
+  jobList.insertAdjacentElement("afterend", moreBtn);
 
-cards.forEach((card, index) => {
-  card.style.display = (!expanded && index >= 8) ? "none" : "";
-});
+  function updateJobsView() {
+    const cards = Array.from(jobList.querySelectorAll(".job-card"));
 
-moreBtn.style.display = cards.length > 8 ? "block" : "none";
-moreBtn.textContent = expanded ? "Show Less ↑" : "More Jobs ↓";
+    cards.forEach((card, index) => {
+      card.style.display = (!expanded && index >= 8) ? "none" : "";
+    });
 
-}
+    moreBtn.style.display = cards.length > 8 ? "block" : "none";
+    moreBtn.textContent = expanded
+      ? "Show Less ↑"
+      : "Show More Jobs ↓";
+  }
 
-moreBtn.addEventListener("click", function () {
-expanded = !expanded;
-updateJobsView();
+  moreBtn.addEventListener("click", function () {
+    expanded = !expanded;
+    updateJobsView();
 
-if (!expanded) {
-  document.getElementById("jobs").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
+    if (!expanded) {
+      document.getElementById("jobs").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
   });
-}
 
-});
+  new MutationObserver(updateJobsView).observe(jobList, {
+    childList: true
+  });
 
-new MutationObserver(updateJobsView).observe(jobList, {
-childList: true
-});
-
-updateJobsView();
+  updateJobsView();
 })();

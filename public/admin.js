@@ -1,3 +1,4 @@
+const API_BASE = "https://gulfjobsindia.gulfjob.workers.dev";
 const TOKEN_KEY = "gji_admin_token";
 let token = sessionStorage.getItem(TOKEN_KEY) || "";
 let jobsCache = [];
@@ -19,7 +20,7 @@ async function api(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const r = await fetch(path, { ...options, headers });
+  const r = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await r.json().catch(() => ({}));
 
   if (r.status === 401 && path !== "/api/admin/login") {

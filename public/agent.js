@@ -1,6 +1,7 @@
 (() => {
 "use strict";
 
+const API_BASE = "https://gulfjobsindia.gulfjob.workers.dev";
 const KEY = "gji_agent_token";
 let token = sessionStorage.getItem(KEY) || "";
 
@@ -23,7 +24,7 @@ async function api(url, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE}${url}`, {
     ...options,
     headers
   });
