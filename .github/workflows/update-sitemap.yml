@@ -1,8 +1,8 @@
-name: Update GulfJobsIndia Sitemap
+name: Update and Deploy GulfJobsIndia Sitemap
 
 on:
   schedule:
-    # GitHub Actions cron is UTC. Runs at 00:00, 10:00 and 20:00 UTC daily.
+    # GitHub Actions cron is UTC: 00:00, 10:00 and 20:00 UTC daily.
     - cron: '0 0,10,20 * * *'
   workflow_dispatch:
 
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  update-sitemap:
+  update-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -38,3 +38,9 @@ jobs:
             git commit -m "chore: update GulfJobsIndia sitemap"
             git push
           fi
+
+      - name: Deploy updated public folder to existing Cloudflare Pages project
+        run: npx wrangler@4 pages deploy public --project-name=gulfjobsindia --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
