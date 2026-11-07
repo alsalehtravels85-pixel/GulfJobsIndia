@@ -11,3 +11,6 @@ not_found_handling = "single-page-application"
 WHATSAPP_NUMBER = "918576850306"
 # After deployment, set ALLOWED_ORIGIN to your actual website origin, e.g. https://gulfjobsindia.your-subdomain.workers.dev
 ALLOWED_ORIGIN = "*"
+
+[triggers]
+crons = ["0 3 * * *"] # Daily 08:30 AM India time
