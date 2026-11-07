@@ -268,7 +268,7 @@ Sitemap: https://gulfjobsindia.gulfjob.workers.dev/sitemap.xml
         const digits = suppliedPhone.replace(/\D/g, "");
         if (digits.length < 10 || digits.length > 15) return json({ error: "Valid registered mobile number enter karein." }, 400, cors);
         const lastTen = digits.slice(-10);
-        const r = await db(env, `applications?select=phone,created_at,status,jobs(title)&phone=ilike.*${encodeURIComponent(lastTen)}&order=created_at.desc&limit=100`);
+        const r = await db(env, `applications?select=candidate_name,phone,created_at,status,jobs(title)&phone=ilike.*${encodeURIComponent(lastTen)}&order=created_at.desc&limit=100`);
         if (!r.ok) return json({ error: "Application status load nahi ho saka. Thodi der baad try karein." }, 502, cors);
         const rows = await r.json();
         const matched = rows.filter(row => String(row.phone || "").replace(/\D/g, "").endsWith(lastTen));
