@@ -272,7 +272,7 @@ Sitemap: https://gulfjobsindia.gulfjob.workers.dev/sitemap.xml
         if (!r.ok) return json({ error: "Application status load nahi ho saka. Thodi der baad try karein." }, 502, cors);
         const rows = await r.json();
         const matched = rows.filter(row => String(row.phone || "").replace(/\D/g, "").endsWith(lastTen));
-        return json({ applications: matched.map(row => ({ job_title: row.jobs?.title || "General Application", application_date: row.created_at, status: row.status || "new" })) }, 200, { ...cors, "Cache-Control": "no-store" });
+        return json({ applications: matched.map(row => ({ job_title: row.jobs?.title || return json({ applications: matched.map(row => ({ candidate_name: row.candidate_name || "Candidate", job_title: row.jobs?.title || "General Application", application_date: row.created_at, status: row.status || "new" })) }, 200, { ...cors, "Cache-Control": "no-store" });
       }
 
       if (path === "/api/applications" && request.method === "POST") {
