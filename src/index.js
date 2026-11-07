@@ -118,6 +118,45 @@ function isPdf(bytes) {
     bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d;
 }
 
+// Remove published/closed jobs two calendar months after their application deadline.
+// Applications are preserved by the existing ON DELETE SET NULL relationship;
+// candidate PDFs are stored separately and are not touched here.
+function twoCalendarMonthsAgoUTC(now = new Date()) {
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
+  const day = now.getUTCDate();
+  const targetMonthIndex = month - 2;
+  const targetYear = year + Math.floor(targetMonthIndex / 12);
+  const normalizedMonth = ((targetMonthIndex % 12) + 12) % 12;
+  const lastDay = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate();
+  const targetDay = Math.min(day, lastDay);
+  return `${targetYear}-${String(normalizedMonth + 1).padStart(2, "0")}-${String(targetDay).padStart(2, "0")}`;
+}
+
+async function deleteExpiredJobs(env, now = new Date()) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Supabase Worker secrets are not configured.");
+  }
+  const cutoff = twoCalendarMonthsAgoUTC(now);
+  const listResponse = await db(env, `jobs?select=id,last_date&last_date=not.is.null&last_date=lte.${cutoff}&limit=500`);
+  const listText = await listResponse.text();
+  if (!listResponse.ok) throw new Error(`Could not list expired jobs (${listResponse.status}): ${listText.slice(0, 300)}`);
+  const expired = JSON.parse(listText || "[]");
+  let deleted = 0;
+  for (let i = 0; i < expired.length; i += 100) {
+    const ids = expired.slice(i, i + 100).map(row => row.id).filter(Boolean);
+    if (!ids.length) continue;
+    const response = await db(env, `jobs?id=in.(${ids.join(",")})`, {
+      method: "DELETE", headers: { Prefer: "return=representation" }
+    });
+    const body = await response.text();
+    if (!response.ok) throw new Error(`Could not delete expired jobs (${response.status}): ${body.slice(0, 300)}`);
+    try { const rows = JSON.parse(body || "[]"); deleted += Array.isArray(rows) ? rows.length : ids.length; }
+    catch { deleted += ids.length; }
+  }
+  return { cutoff, found: expired.length, deleted };
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -539,5 +578,15 @@ Sitemap: https://gulfjobsindia.gulfjob.workers.dev/sitemap.xml
     } catch (e) {
       return json({ error: "Server par error aaya. Settings aur logs check karein.", detail: (env.ENVIRONMENT === "development" ? String(e) : undefined) }, 500, cors);
     }
+  },
+
+  // Daily at 03:00 UTC (08:30 AM India time).
+  async scheduled(_controller, env, ctx) {
+    ctx.waitUntil((async () => {
+      const result = await deleteExpiredJobs(env);
+      console.log("GulfJobsIndia auto-delete:", JSON.stringify(result));
+    })().catch(error => {
+      console.error("GulfJobsIndia auto-delete failed:", error?.message || error);
+    }));
   }
 };
