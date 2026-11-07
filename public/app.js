@@ -1,623 +1,527 @@
-const API = "https://gulfjobsindia.gulfjob.workers.dev";
-const WA = "918576850306";
-const INITIAL_STORIES = 8;
-
-let allJobs = [];
-let allStories = [];
-let showAllStories = false;
-
-const $ = selector => document.querySelector(selector);
-
-const escapeHtml = (value = "") =>
-  String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-
-function waLink(job) {
-  const message = job
-    ? `Hello, I am interested in the ${job.title} job in ${job.country}. Please share verified details.`
-    : "Hello, I would like information about Gulf job opportunities.";
-
-  return `https://wa.me/${WA}?text=${encodeURIComponent(message)}`;
-}
-
-/* JOB CARDS */
-
-function jobCard(job) {
-  const description = String(job.description || "");
-  const shortDescription = description.length > 180
-    ? description.slice(0, 180) + "…"
-    : description;
-
-  const salary = job.salary
-    ? `<span>💰 ${escapeHtml(job.salary)}</span>` : "";
-
-  const city = job.city
-    ? `<span>📍 ${escapeHtml(job.city)}</span>` : "";
-
-  const experience = job.experience
-    ? `<span>🧰 ${escapeHtml(job.experience)}</span>` : "";
-
-  const lastDate = job.last_date
-    ? `<span>📅 Last date: ${escapeHtml(job.last_date)}</span>` : "";
-
-  const qualification = job.qualification
-    ? `<p class="job-description"><strong>Qualification:</strong> ${escapeHtml(job.qualification)}</p>`
-    : "";
-
-  return `
-    <article class="job-card" data-job-id="${escapeHtml(job.id)}">
-      <div class="job-card-top">
-        <div>
-          <h3>${escapeHtml(job.title || "Gulf Job")}</h3>
-          <div class="job-company">
-            ${escapeHtml(job.company_name || "Employer details available on request")}
-          </div>
-        </div>
-        <span class="job-country">${escapeHtml(job.country || "Gulf")}</span>
-      </div>
-
-      <div class="job-meta">
-        ${salary}${city}${experience}${lastDate}
-      </div>
-
-      ${(new URLSearchParams(window.location.search).get("job") === String(job.id)
-  ? description
-  : shortDescription)
-  ? `<p class="job-description">${escapeHtml(
-      new URLSearchParams(window.location.search).get("job") === String(job.id)
-        ? description
-        : shortDescription
-    )}</p>`
-  : ""}
-
-      ${qualification}
-
-      <div class="job-actions">
-  <button class="btn btn-green apply-job" type="button"
-    data-id="${escapeHtml(job.id)}">Apply Now</button>
-
-  <a class="btn btn-whatsapp" href="${waLink(job)}"
-    target="_blank" rel="noopener">WhatsApp</a>
-
-  <button class="btn btn-share" type="button"
-    data-share-job="${escapeHtml(job.id)}">
-    ↗ Share
-  </button>
-</div>
-    </article>
-  `;
-}
-
-/* JOB SEARCH AND FILTER */
-
-function renderJobs() {
-  const jobList = $("#jobList");
-  const noJobs = $("#noJobs");
-  const jobCount = $("#jobCount");
-  const applySelect = $("#applyJob");
-
-  if (!jobList || !noJobs || !jobCount || !applySelect) return;
-
-  const query = ($("#searchInput")?.value || "").toLowerCase().trim();
-  const country = $("#countryFilter")?.value || "";
-
-  const filtered = allJobs.filter(job => {
-    const countryMatches = !country || job.country === country;
-
-    const text = [
-      job.title,
-      job.company_name,
-      job.city,
-      job.country,
-      job.description,
-      job.qualification
-    ].map(value => String(value || "").toLowerCase()).join(" ");
-
-    return countryMatches && (!query || text.includes(query));
-  });
-
-  jobList.innerHTML = filtered.length
-    ? filtered.map(jobCard).join("")
-    : "";
-
-  noJobs.classList.toggle("hidden", filtered.length > 0);
-
-  jobCount.textContent =
-    `${filtered.length} ${filtered.length === 1 ? "job" : "jobs"}`;
-
-  const previousSelection = applySelect.value;
-
-  applySelect.innerHTML =
-    `<option value="">Select a published job</option>` +
-    allJobs.map(job => `
-      <option value="${escapeHtml(job.id)}">
-        ${escapeHtml(job.title || "Gulf Job")} — ${escapeHtml(job.country || "Gulf")}
-      </option>
-    `).join("");
-
-  if (allJobs.some(job => String(job.id) === previousSelection)) {
-    applySelect.value = previousSelection;
-  }
-}
-function openSharedJobFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const jobId = params.get("job");
-
-  if (!jobId) return;
-
-  const card = Array.from(
-    document.querySelectorAll(".job-card")
-  ).find(item => item.dataset.jobId === jobId);
-
-  if (card) {
-    setTimeout(() => {
-      card.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-    }, 300);
-  }
-}
-async function loadJobs() {
-  const jobList = $("#jobList");
-  const jobCount = $("#jobCount");
-
-  try {
-    const response = await fetch(`${API}/api/jobs`);
-
-    if (!response.ok) throw new Error("Could not load jobs");
-
-    const jobs = await response.json();
-
-    if (!Array.isArray(jobs)) throw new Error("Invalid jobs response");
-
-    allJobs = jobs;
-renderJobs();
-openSharedJobFromUrl();
-  } catch (error) {
-    console.error("Jobs loading error:", error);
-
-    if (jobList) {
-      jobList.innerHTML = `
-        <div class="empty-state">
-          Jobs abhi load nahi ho rahe. Deployment aur API settings check karein.
-        </div>`;
-    }
-
-    if (jobCount) jobCount.textContent = "Jobs unavailable";
-  }
-}
-
-/* SELECTED CANDIDATE CARDS */
-
-function storyCard(story, index) {
-  const name = String(story.candidate_name || "Candidate").trim();
-  const initial = name.charAt(0).toUpperCase() || "C";
-
-  const palettes = [
-    "story-green",
-    "story-gold",
-    "story-blue",
-    "story-purple",
-    "story-orange"
-  ];
-
-  const palette = palettes[index % palettes.length];
-
-  return `
-    <article class="success-card ${palette}">
-      <div class="success-card-top">
-        <span class="success-confetti" aria-hidden="true">✦</span>
-        <span class="success-badge">✓ SELECTED</span>
-      </div>
-
-      <div class="success-avatar" aria-hidden="true">
-        ${escapeHtml(initial)}
-      </div>
-
-      <div class="success-card-body">
-        <h3>${escapeHtml(name)}</h3>
-        <p class="success-job">${escapeHtml(story.job_title || "Gulf Job")}</p>
-        <p class="success-country">🌍 ${escapeHtml(story.country || "Gulf")}</p>
-      </div>
-
-      <div class="success-congrats">🎉 Congratulations!</div>
-    </article>
-  `;
-}
-
-function renderSuccessStories() {
-  const list = $("#successStories");
-  const count = $("#storyCount");
-  const empty = $("#noStories");
-  const button = $("#showMoreStories");
-
-  if (!list) return;
-
-  const total = allStories.length;
-  const visible = showAllStories
-    ? allStories
-    : allStories.slice(0, INITIAL_STORIES);
-
-  if (count) count.textContent = `${total} selected`;
-
-  list.innerHTML = visible
-    .map((story, index) => storyCard(story, index))
-    .join("");
-
-  if (empty) {
-    empty.classList.toggle("hidden", total > 0);
-  }
-
-  if (button) {
-    const hasMore = total > INITIAL_STORIES;
-
-    button.classList.toggle("hidden", !hasMore);
-    button.setAttribute("aria-expanded", String(showAllStories));
-
-    button.textContent = showAllStories
-      ? "Show Less ↑"
-      : "Show More Candidates ↓";
-  }
-}
-
-async function loadSuccessStories() {
-  const list = $("#successStories");
-  const count = $("#storyCount");
-  const empty = $("#noStories");
-
-  if (!list) return;
-
-  try {
-    const response = await fetch(`${API}/api/success-stories`);
-
-    if (!response.ok) throw new Error("Stories unavailable");
-
-    const stories = await response.json();
-
-    if (!Array.isArray(stories)) throw new Error("Invalid candidate response");
-
-    allStories = stories;
-    showAllStories = false;
-
-    renderSuccessStories();
-  } catch (error) {
-    console.error("Candidate updates loading error:", error);
-
-    if (count) count.textContent = "Updates";
-
-    list.innerHTML = "";
-
-    if (empty) {
-      empty.textContent = "Candidate updates abhi load nahi ho paayi.";
-      empty.classList.remove("hidden");
-    }
-
-    $("#showMoreStories")?.classList.add("hidden");
-  }
-}
-
-/* SHOW MORE / SHOW LESS */
-
-$("#showMoreStories")?.addEventListener("click", () => {
-  showAllStories = !showAllStories;
-  renderSuccessStories();
+const corsHeaders = (origin) => ({
+  "Access-Control-Allow-Origin": origin || "*",
+  "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
+  "Vary": "Origin"
 });
 
-/* APPLY BUTTON AND COUNTRY CARDS */
+function json(data, status = 200, headers = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", ...headers }
+  });
+}
 
-document.addEventListener("click", event => {
-    const shareButton = event.target.closest("[data-share-job]");
+function b64url(bytes) {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+function fromB64url(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+}
+async function hmac(secret, message) {
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message)));
+}
+async function createToken(env) {
+  const payload = b64url(new TextEncoder().encode(JSON.stringify({ role: "admin", exp: Date.now() + 8 * 60 * 60 * 1000 })));
+  return payload + "." + b64url(await hmac(env.SESSION_SECRET, payload));
+}
+async function validToken(request, env) {
+  const auth = request.headers.get("Authorization") || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const [payload, sig] = token.split(".");
+  if (!payload || !sig || !env.SESSION_SECRET) return false;
+  try {
+    const expected = await hmac(env.SESSION_SECRET, payload);
+    const actual = fromB64url(sig);
+    if (actual.length !== expected.length) return false;
+    let diff = 0;
+    for (let i = 0; i < actual.length; i++) diff |= actual[i] ^ expected[i];
+    if (diff !== 0) return false;
+    const data = JSON.parse(new TextDecoder().decode(fromB64url(payload)));
+    return data.role === "admin" && data.exp > Date.now();
+  } catch { return false; }
+}
+function cleanText(v, max = 2000) {
+  return String(v ?? "").trim().slice(0, max);
+}
+function supabaseHeaders(env, extra = {}) {
+  return { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, ...extra };
+}
+async function db(env, path, options = {}) {
+  const url = env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/" + path;
+  return fetch(url, { ...options, headers: supabaseHeaders(env, options.headers || {}) });
+}
+async function sendEmail(env, subject, text) {
+  if (!env.RESEND_API_KEY || !env.NOTIFY_EMAIL) return;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: env.EMAIL_FROM || "GulfJobsIndia <onboarding@resend.dev>",
+        to: [env.NOTIFY_EMAIL],
+        subject,
+        text
+      })
+    });
+  } catch (_) {}
+}
+async function adminOnly(request, env) {
+  if (!await validToken(request, env)) return json({ error: "Admin login required." }, 401);
+  return null;
+}
 
-  if (shareButton) {
-    const jobId = shareButton.dataset.shareJob;
+async function createAgentToken(env, agent) {
+  const payload = b64url(new TextEncoder().encode(JSON.stringify({ role: "agent", agent_id: agent.id, exp: Date.now() + 8 * 60 * 60 * 1000 })));
+  return payload + "." + b64url(await hmac(env.SESSION_SECRET, payload));
+}
+async function agentIdentity(request, env) {
+  const auth = request.headers.get("Authorization") || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const [payload, sig] = token.split(".");
+  if (!payload || !sig || !env.SESSION_SECRET) return null;
+  try {
+    const expected = await hmac(env.SESSION_SECRET, payload), actual = fromB64url(sig);
+    if (actual.length !== expected.length) return null;
+    let diff = 0; for (let i = 0; i < actual.length; i++) diff |= actual[i] ^ expected[i];
+    if (diff !== 0) return null;
+    const data = JSON.parse(new TextDecoder().decode(fromB64url(payload)));
+    return data.role === "agent" && data.exp > Date.now() && data.agent_id ? data : null;
+  } catch { return null; }
+}
+async function passwordHash(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, key, 256));
+  return b64url(salt) + "." + b64url(bits);
+}
+async function verifyPassword(password, stored) {
+  try {
+    const [saltText, hashText] = stored.split("."), salt = fromB64url(saltText), expected = fromB64url(hashText);
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+    const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, key, 256));
+    if (bits.length !== expected.length) return false;
+    let diff = 0; for (let i = 0; i < bits.length; i++) diff |= bits[i] ^ expected[i]; return diff === 0;
+  } catch { return false; }
+}
 
-    const job = allJobs.find(
-      item => String(item.id) === String(jobId)
-    );
+function isPdf(bytes) {
+  return bytes.length >= 5 && bytes[0] === 0x25 && bytes[1] === 0x50 &&
+    bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d;
+}
 
-    if (!job) return;
+export default {
+  async fetch(request, env) {
+    const origin = request.headers.get("Origin") || "";
+    const allowed = env.ALLOWED_ORIGIN && env.ALLOWED_ORIGIN !== "*" ? env.ALLOWED_ORIGIN : "*";
+    const cors = corsHeaders(allowed);
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
-    const shareUrl = new URL(window.location.href);
-    shareUrl.search = "";
-    shareUrl.searchParams.set("job", String(job.id));
-    shareUrl.hash = "jobs";
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+        // SEO: sitemap.xml
+    if (
+      (path === "/sitemap.xml" || path === "/robots.txt") &&
+      ["GET", "HEAD"].includes(request.method)
+    ) {
+      if (path === "/sitemap.xml") {
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://gulfjobsindia.gulfjob.workers.dev/</loc>
+  </url>
+</urlset>`;
 
-    const message =
-      `${job.title || "Gulf Job"}\n` +
-      `Country: ${job.country || "Gulf"}\n` +
-      `Company: ${job.company_name || ""}\n` +
-      `Job Details: ${shareUrl.toString()}`;
+        return new Response(
+          request.method === "HEAD" ? null : xml,
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/xml; charset=UTF-8",
+              "Cache-Control": "public, max-age=3600",
+              "X-Content-Type-Options": "nosniff"
+            }
+          }
+        );
+      }
 
-    if (navigator.share) {
-      navigator.share({
-        title: job.title || "Gulf Job",
-        text: message,
-        url: shareUrl.toString()
-      }).catch(error => {
-        if (error.name !== "AbortError") {
-          window.open(
-            "https://wa.me/?text=" + encodeURIComponent(message),
-            "_blank"
-          );
+      const robots = `User-agent: *
+Allow: /
+
+Sitemap: https://gulfjobsindia.gulfjob.workers.dev/sitemap.xml
+`;
+
+      return new Response(
+        request.method === "HEAD" ? null : robots,
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "text/plain; charset=UTF-8",
+            "Cache-Control": "public, max-age=3600"
+          }
         }
-      });
-    } else {
-      window.open(
-        "https://wa.me/?text=" + encodeURIComponent(message),
-        "_blank"
       );
     }
-
-    return;
-  }
-  const applyButton = event.target.closest(".apply-job");
-
-  if (applyButton) {
-    const select = $("#applyJob");
-
-    if (select) select.value = applyButton.dataset.id || "";
-
-    $("#apply")?.scrollIntoView({ behavior: "smooth" });
-  }
-
-  const countryButton = event.target.closest("[data-country]");
-
-  if (countryButton) {
-    const filter = $("#countryFilter");
-
-    if (filter) filter.value = countryButton.dataset.country || "";
-
-    $("#jobs")?.scrollIntoView({ behavior: "smooth" });
-    renderJobs();
-  }
-});
-
-/* MOBILE MENU */
-
-const menuToggle = $("#menuToggle");
-const mainNav = $("#mainNav");
-
-menuToggle?.addEventListener("click", () => {
-  if (!mainNav) return;
-
-  const isOpen = mainNav.classList.toggle("open");
-
-  menuToggle.setAttribute("aria-expanded", String(isOpen));
-  menuToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
-});
-
-mainNav?.querySelectorAll("a").forEach(link => {
-  link.addEventListener("click", () => {
-    mainNav.classList.remove("open");
-    menuToggle?.setAttribute("aria-expanded", "false");
-    menuToggle?.setAttribute("aria-label", "Open menu");
-  });
-});
-
-/* SEARCH EVENTS */
-
-$("#searchBtn")?.addEventListener("click", renderJobs);
-$("#searchInput")?.addEventListener("input", renderJobs);
-$("#countryFilter")?.addEventListener("change", renderJobs);
-
-/* FOOTER YEAR */
-
-if ($("#year")) {
-  $("#year").textContent = new Date().getFullYear();
-}
-
-/* APPLICATION FORM */
-
-$("#applicationForm")?.addEventListener("submit", async event => {
-  event.preventDefault();
-
-  const form = event.currentTarget;
-  const message = $("#formMessage");
-  const button = $("#submitApplication");
-
-  if (!message || !button) return;
-
-  message.className = "form-message";
-  message.textContent = "";
-
-  const file = form.elements.namedItem("document")?.files?.[0];
-
-  if (!file) {
-    message.classList.add("error");
-    message.textContent = "Apni PDF file select karein.";
-    return;
-  }
-
-  const isPdf =
-    file.type === "application/pdf" ||
-    file.name.toLowerCase().endsWith(".pdf");
-
-  if (!isPdf || file.size > 10 * 1024 * 1024) {
-    message.classList.add("error");
-    message.textContent = "Ek valid PDF select karein (maximum 10 MB).";
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = "Submitting…";
-
-  try {
-    const response = await fetch(`${API}/api/applications`, {
-      method: "POST",
-      body: new FormData(form)
-    });
-
-    let data = {};
-
     try {
-      data = await response.json();
-    } catch (_) {
-      data = {};
-    }
+      if (path === "/api/health" && request.method === "GET") {
+        return json({ ok: true, service: "GulfJobsIndia API" }, 200, cors);
+      }
 
-    if (!response.ok) {
-      throw new Error(data.error || "Application submit nahi hui.");
-    }
+      if (path === "/api/config" && request.method === "GET") {
+        return json({ whatsappNumber: env.WHATSAPP_NUMBER || "918576850306" }, 200, cors);
+      }
 
-    form.reset();
+      if (path === "/api/admin/login" && request.method === "POST") {
+        if (!env.ADMIN_PASSWORD || !env.SESSION_SECRET) return json({ error: "Admin secrets are not configured in Cloudflare." }, 500, cors);
+        const body = await request.json();
+        const password = String(body.password || "");
+        if (password.length > 200 || password !== env.ADMIN_PASSWORD) return json({ error: "Password galat hai." }, 401, cors);
+        return json({ token: await createToken(env) }, 200, cors);
+      }
 
-    message.classList.add("success");
-    message.textContent =
-      data.message || "Application successfully submit ho gayi.";
+      if (path === "/api/jobs" && request.method === "GET") {
+        const r = await db(env, "jobs?select=*&status=eq.published&order=created_at.desc");
+        const t = await r.text();
+        if (!r.ok) return json({ error: "Jobs load nahi ho sake.", details: t.slice(0, 300) }, 502, cors);
+        return new Response(t, { status: 200, headers: { ...cors, "Content-Type": "application/json; charset=utf-8" } });
+      }
 
-  } catch (error) {
-    console.error("Application submission error:", error);
+      if (path === "/api/success-stories" && request.method === "GET") {
+        const r = await db(env, "success_stories?select=id,candidate_name,job_title,country,created_at&status=eq.published&order=created_at.desc&limit=12");
+        const t = await r.text();
+        if (!r.ok) return json({ error: "Success stories service unavailable hai. Worker deployment aur Supabase migration check karein." }, 502, cors);
+        return new Response(t, { status: 200, headers: { ...cors, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "public, max-age=60" } });
+      }
 
-    message.classList.add("error");
-    message.textContent =
-      error.message || "Network error. Dobara try karein.";
+      if (path === "/api/agent/register" && request.method === "POST") {
+        if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
+        const b = await request.json();
+        const name = cleanText(b.full_name, 100), phone = cleanText(b.phone, 20), email = cleanText(b.email, 160).toLowerCase(), agency = cleanText(b.agency_name, 160), password = String(b.password || "");
+        if (!name || !phone || !email || !agency || password.length < 8 || password.length > 200) return json({ error: "Saari details bharein. Password kam se kam 8 characters ka ho." }, 400, cors);
+        if (!/^[0-9+() -]{7,20}$/.test(phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Email ya mobile number check karein." }, 400, cors);
+        const [emailExists, phoneExists] = await Promise.all([
+          db(env, `agents?select=id&email=eq.${encodeURIComponent(email)}&limit=1`),
+          db(env, `agents?select=id&phone=eq.${encodeURIComponent(phone)}&limit=1`)
+        ]);
+        if (!emailExists.ok || !phoneExists.ok) return json({ error: "Agent database setup check karein. schema.sql run hua hai?" }, 502, cors);
+        if ((await emailExists.json()).length) return json({ error: "Is email se account pehle se hai." }, 409, cors);
+        if ((await phoneExists.json()).length) return json({ error: "Is mobile number se account pehle se hai." }, 409, cors);
+        const r = await db(env, "agents", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ full_name: name, phone, email, agency_name: agency, password_hash: await passwordHash(password), status: "pending" }) });
+        if (!r.ok) return json({ error: "Registration save nahi hui. Supabase schema check karein." }, 502, cors);
+        return json({ ok: true, message: "Registration ho gayi. Admin approval ke baad login kar sakenge." }, 201, cors);
+      }
+      if (path === "/api/agent/login" && request.method === "POST") {
+        if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET Cloudflare mein set nahi hai." }, 500, cors);
+        const b = await request.json(), loginId = cleanText(b.login_id || b.email, 160), password = String(b.password || "");
+        if (!loginId || !password) return json({ error: "Registered email ya mobile aur password enter karein." }, 400, cors);
+        const isEmail = loginId.includes("@");
+        const field = isEmail ? "email" : "phone";
+        const identifier = isEmail ? loginId.toLowerCase() : loginId;
+        const r = await db(env, `agents?select=id,full_name,email,phone,password_hash,status&${field}=eq.${encodeURIComponent(identifier)}&limit=1`);
+        if (!r.ok) return json({ error: "Agent database setup check karein." }, 502, cors);
+        const rows = await r.json();
+        if (!rows.length || !(await verifyPassword(password, rows[0].password_hash))) return json({ error: "Email ya password galat hai." }, 401, cors);
+        if (rows[0].status !== "approved") return json({ error: rows[0].status === "blocked" ? "Account block hai. Admin se contact karein." : "Account approval pending hai." }, 403, cors);
+        return json({ token: await createAgentToken(env, rows[0]), agent: { id: rows[0].id, full_name: rows[0].full_name, email: rows[0].email, phone: rows[0].phone } }, 200, cors);
+      }
+      if (path.startsWith("/api/agent/")) {
+        const identity = await agentIdentity(request, env);
+        if (!identity) return json({ error: "Agent login required. Dobara login karein." }, 401, cors);
+        if (path === "/api/agent/applications" && request.method === "GET") {
+          const r = await db(env, `applications?select=id,job_id,candidate_name,phone,email,status,created_at,jobs(title)&agent_id=eq.${encodeURIComponent(identity.agent_id)}&order=created_at.desc&limit=300`);
+          const t = await r.text();
+          if (!r.ok) return json({ error: "Applications load nahi hui. schema.sql update karein." }, 502, cors);
+          return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
+        }
+        if (path === "/api/agent/applications" && request.method === "POST") {
+          const form = await request.formData(), candidateName = cleanText(form.get("candidate_name"), 100), phone = cleanText(form.get("phone"), 20), email = cleanText(form.get("email"), 160), message = cleanText(form.get("message"), 1000), jobId = cleanText(form.get("job_id"), 50), file = form.get("document");
+          if (!candidateName || !phone || !file || typeof file.arrayBuffer !== "function") return json({ error: "Candidate name, mobile aur PDF zaroori hain." }, 400, cors);
+          if (!/^[0-9+() -]{7,20}$/.test(phone)) return json({ error: "Mobile number check karein." }, 400, cors);
+          if (file.size > 10 * 1024 * 1024) return json({ error: "PDF maximum 10 MB ki ho sakti hai." }, 400, cors);
+          const bytes = new Uint8Array(await file.arrayBuffer()); if (!isPdf(bytes)) return json({ error: "Sirf valid PDF upload karein." }, 400, cors);
+          if (!jobId) return json({ error: "Candidate ke liye job select karein." }, 400, cors);
+          const jr = await db(env, `jobs?id=eq.${encodeURIComponent(jobId)}&status=eq.published&select=id&limit=1`);
+          if (!jr.ok || !(await jr.json()).length) return json({ error: "Published job select karein." }, 400, cors);
+          const objectPath = `agent-applications/${identity.agent_id}/${crypto.randomUUID()}.pdf`;
+          const storageUrl = env.SUPABASE_URL.replace(/\/$/, "") + "/storage/v1/object/gulf-applications/" + objectPath;
+          const upload = await fetch(storageUrl, { method: "POST", headers: supabaseHeaders(env, { "Content-Type": "application/pdf", "x-upsert": "false" }), body: bytes });
+          if (!upload.ok) return json({ error: "PDF upload nahi hui. Supabase storage check karein." }, 502, cors);
+          const ins = await db(env, "applications", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ job_id: jobId, candidate_name: candidateName, phone, email: email || null, message: message || null, document_path: objectPath, status: "new", agent_id: identity.agent_id }) });
+          if (!ins.ok) { await fetch(storageUrl, { method: "DELETE", headers: supabaseHeaders(env) }); return json({ error: "Application save nahi hui. Database schema update karein." }, 502, cors); }
+          await sendEmail(env, `Agent application: ${candidateName}`, `Agent ID: ${identity.agent_id}\nCandidate: ${candidateName}\nPhone: ${phone}\nPlease review in admin panel.`);
+          return json({ ok: true, message: "Candidate application submit ho gayi." }, 201, cors);
+        }
+      }
 
-  } finally {
-    button.disabled = false;
-    button.textContent = "Submit Application";
-  }
-});
+      // Public candidate tracker: returns only job title, date and status.
+      // Never returns candidate name, email, phone, message or document path.
+      if (path === "/api/application-status" && request.method === "GET") {
+        const suppliedPhone = cleanText(url.searchParams.get("phone"), 30);
+        const digits = suppliedPhone.replace(/\D/g, "");
+        if (digits.length < 10 || digits.length > 15) return json({ error: "Valid registered mobile number enter karein." }, 400, cors);
+        const lastTen = digits.slice(-10);
+        const r = await db(env, `applications?select=phone,created_at,status,jobs(title)&phone=ilike.*${encodeURIComponent(lastTen)}&order=created_at.desc&limit=100`);
+        if (!r.ok) return json({ error: "Application status load nahi ho saka. Thodi der baad try karein." }, 502, cors);
+        const rows = await r.json();
+        const matched = rows.filter(row => String(row.phone || "").replace(/\D/g, "").endsWith(lastTen));
+        return json({ applications: matched.map(row => ({ job_title: row.jobs?.title || "General Application", application_date: row.created_at, status: row.status || "new" })) }, 200, { ...cors, "Cache-Control": "no-store" });
+      }
 
-/* PUBLIC APPLICATION STATUS LOOKUP */
-$("#statusCheckForm")?.addEventListener("submit", async event => {
-  event.preventDefault();
+      if (path === "/api/applications" && request.method === "POST") {
+        const form = await request.formData();
+        const candidateName = cleanText(form.get("candidate_name"), 100);
+        const phone = cleanText(form.get("phone"), 20);
+        const email = cleanText(form.get("email"), 160);
+        const message = cleanText(form.get("message"), 1000);
+        const jobId = cleanText(form.get("job_id"), 50);
+        const file = form.get("document");
+        if (!candidateName || !phone || !file || typeof file.arrayBuffer !== "function") {
+          return json({ error: "Name, mobile number aur ek PDF file zaroori hain." }, 400, cors);
+        }
+        if (!/^[0-9+() -]{7,20}$/.test(phone)) return json({ error: "Mobile number check karein." }, 400, cors);
+        if (file.size > 10 * 1024 * 1024) return json({ error: "PDF maximum 10 MB ki ho sakti hai." }, 400, cors);
+        if (file.type && file.type !== "application/pdf") return json({ error: "Sirf PDF file upload karein." }, 400, cors);
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        if (!isPdf(bytes)) return json({ error: "File valid PDF nahi lag rahi." }, 400, cors);
 
-  const form = event.currentTarget;
-  const phoneInput = form.elements.namedItem("phone");
-  const message = $("#statusCheckMessage");
-  const results = $("#statusResults");
-  const button = $("#checkStatusBtn");
-  const phone = String(phoneInput?.value || "").trim();
-  const digits = phone.replace(/\D/g, "");
-  const tenDigit = digits.length === 12 && digits.startsWith("91")
-    ? digits.slice(2)
-    : digits.length === 11 && digits.startsWith("0")
-      ? digits.slice(1)
-      : digits;
+        let jobTitle = "General application";
+        if (jobId) {
+          const jr = await db(env, `jobs?id=eq.${encodeURIComponent(jobId)}&status=eq.published&select=id,title&limit=1`);
+          if (jr.ok) {
+            const rows = await jr.json();
+            if (!rows.length) return json({ error: "Ye job ab available nahi hai. Page refresh karein." }, 400, cors);
+            jobTitle = rows[0].title;
+          } else return json({ error: "Job verify nahi ho saki." }, 502, cors);
+        }
 
-  if (!/^[6-9]\d{9}$/.test(tenDigit)) {
-    message.className = "form-message error";
-    message.textContent = "Please valid 10-digit Indian mobile number enter karein.";
-    results.innerHTML = "";
-    phoneInput?.focus();
-    return;
-  }
+        const safeName = crypto.randomUUID() + ".pdf";
+        const objectPath = `applications/${new Date().getUTCFullYear()}/${safeName}`;
+        const storageUrl = env.SUPABASE_URL.replace(/\/$/, "") + "/storage/v1/object/gulf-applications/" + objectPath;
+        const upload = await fetch(storageUrl, {
+          method: "POST",
+          headers: supabaseHeaders(env, { "Content-Type": "application/pdf", "x-upsert": "false" }),
+          body: bytes
+        });
+        if (!upload.ok) return json({ error: "PDF upload nahi ho saki. Thodi der baad dobara try karein." }, 502, cors);
 
-  message.className = "form-message";
-  message.textContent = "Application status check ho raha hai…";
-  results.innerHTML = "";
-  button.disabled = true;
-  button.textContent = "Checking…";
-
-  try {
-    const response = await fetch(
-      `${API}/api/application-status?phone=${encodeURIComponent(phone)}`,
-      { method: "GET", headers: { "Accept": "application/json" } }
-    );
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-      throw new Error(data.error || "Status check nahi ho saka. Dobara try karein.");
-    }
-
-    const applications = Array.isArray(data.applications) ? data.applications : [];
-
-    if (!applications.length) {
-      message.className = "form-message error";
-      message.textContent = "Is mobile number se koi application nahi mili. Wahi number enter karein jo form mein diya tha.";
-      return;
-    }
-
-    message.className = "form-message success";
-    message.textContent = `${applications.length} application${applications.length === 1 ? "" : "s"} mili.`;
-
-    results.innerHTML = applications.map((application, index) => {
-      const status = String(application.status || "Received");
-      const statusClass = status.toLowerCase() === "selected"
-        ? "status-selected"
-        : status.toLowerCase() === "rejected"
-          ? "status-rejected"
-          : "status-received";
-      const applicationDate = application.application_date
-        ? new Date(application.application_date).toLocaleDateString("en-IN", {
-            day: "2-digit", month: "short", year: "numeric"
+        const insert = await db(env, "applications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({
+            job_id: jobId || null,
+            candidate_name: candidateName,
+            phone,
+            email: email || null,
+            message: message || null,
+            document_path: objectPath,
+            status: "new"
           })
-        : "Not available";
-      return `
-        <article class="status-result-card">
-          <div class="status-result-number">Application ${index + 1}</div>
-          <div class="status-result-name">${escapeHtml(application.candidate_name || "Candidate")}</div>
-          <div class="status-result-job">${escapeHtml(application.job_title || "General Application")}</div>
-          <div class="status-result-date">Application Date: ${escapeHtml(applicationDate)}</div>
-          <span class="status-result-badge ${statusClass}">${escapeHtml(status)}</span>
-        </article>
-      `;
-    }).join("");
+        });
+        if (!insert.ok) {
+          await fetch(storageUrl, { method: "DELETE", headers: supabaseHeaders(env) });
+          return json({ error: "Application save nahi hui. Database setup check karna hoga." }, 502, cors);
+        }
+        await sendEmail(env, `New GulfJobsIndia application: ${candidateName}`, 
+          `New application received.\nName: ${candidateName}\nPhone: ${phone}\nEmail: ${email || "Not provided"}\nJob: ${jobTitle}\nStatus: New\nPlease login to the admin panel to review the private PDF.`);
+        return json({ ok: true, message: "Application submit ho gayi! Hum aapse zaroorat padne par contact karenge." }, 201, cors);
+      }
 
-  } catch (error) {
-    message.className = "form-message error";
-    message.textContent = error.message || "Network error. Dobara try karein.";
-  } finally {
-    button.disabled = false;
-    button.textContent = "Check Status";
-  }
-});
+      if (path.startsWith("/api/admin/")) {
+        const denied = await adminOnly(request, env);
+        if (denied) return new Response(await denied.text(), { status: denied.status, headers: { ...cors, "Content-Type": "application/json" } });
+      }
 
-/* INITIAL LOAD */
+      if (path === "/api/admin/agents" && request.method === "GET") {
+        const r = await db(env, "agents?select=id,full_name,phone,email,agency_name,status,created_at&order=created_at.desc&limit=300");
+        const t = await r.text(); if (!r.ok) return json({ error: "Agents load nahi hue." }, 502, cors);
+        return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
+      }
+      // Admin-only password reset for an agent whose old hash/password no longer matches.
+      const agentPasswordMatch = path.match(/^\/api\/admin\/agents\/([0-9a-f-]+)\/password$/i);
+      if (agentPasswordMatch && request.method === "POST") {
+        const b = await request.json();
+        const newPassword = String(b.password || "");
+        if (newPassword.length < 8 || newPassword.length > 200) {
+          return json({ error: "Naya password 8 se 200 characters ka hona chahiye." }, 400, cors);
+        }
+        const r = await db(env, `agents?id=eq.${agentPasswordMatch[1]}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({ password_hash: await passwordHash(newPassword) })
+        });
+        if (!r.ok) return json({ error: "Agent password reset nahi hua. Database check karein." }, 502, cors);
+        return json({ ok: true, message: "Agent password reset ho gaya. Ab naye password se login karein." }, 200, cors);
+      }
 
-loadJobs();
-loadSuccessStories();
-/* SHOW MORE JOBS - FIXED */
-(function () {
-  const jobList = document.getElementById("jobList");
-  if (!jobList) return;
+      const agentStatusMatch = path.match(/^\/api\/admin\/agents\/([0-9a-f-]+)$/i);
+      if (agentStatusMatch && request.method === "PATCH") {
+        const b = await request.json(); if (!["pending", "approved", "blocked"].includes(b.status)) return json({ error: "Status invalid hai." }, 400, cors);
+        const r = await db(env, `agents?id=eq.${agentStatusMatch[1]}`, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ status: b.status }) });
+        return json({ ok: r.ok }, r.ok ? 200 : 502, cors);
+      }
 
-  let expanded = false;
+      if (path === "/api/admin/jobs" && request.method === "GET") {
+        const r = await db(env, "jobs?select=*&order=created_at.desc");
+        const t = await r.text();
+        if (!r.ok) return json({ error: "Jobs load nahi hue." }, 502, cors);
+        return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
+      }
 
-  // Button ko jobList ke bahar banayein
-  const moreBtn = document.createElement("button");
-  moreBtn.id = "moreJobsBtn";
-  moreBtn.className = "btn btn-green";
-  moreBtn.type = "button";
-  moreBtn.style.cssText = "display:none;margin:20px auto;";
-  moreBtn.textContent = "Show More Jobs ↓";
+      if (path === "/api/admin/jobs" && request.method === "POST") {
+        const b = await request.json();
+        const title = cleanText(b.title, 160), company = cleanText(b.company_name, 160);
+        const country = cleanText(b.country, 40), description = cleanText(b.description, 8000);
+        if (!title || !company || !country || !description) return json({ error: "Job title, company, country aur description zaroori hain." }, 400, cors);
+        if (!["Saudi Arabia", "UAE", "Kuwait", "Oman", "Bahrain"].includes(country)) return json({ error: "Country valid nahi hai." }, 400, cors);
+        const record = {
+          title, company_name: company, country, city: cleanText(b.city, 100) || null,
+          salary: cleanText(b.salary, 100) || null, vacancies: Math.max(1, Math.min(100000, Number(b.vacancies) || 1)),
+          qualification: cleanText(b.qualification, 500) || null, experience: cleanText(b.experience, 200) || null,
+          job_type: cleanText(b.job_type, 60) || "Full Time", description,
+          eligibility: cleanText(b.eligibility, 2000) || null, benefits: cleanText(b.benefits, 2000) || null,
+          last_date: b.last_date || null, status: ["draft", "published", "closed"].includes(b.status) ? b.status : "published"
+        };
+        const r = await db(env, "jobs", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(record) });
+        const t = await r.text();
+        return new Response(t || JSON.stringify({ ok: r.ok }), { status: r.status, headers: { ...cors, "Content-Type": "application/json" } });
+      }
 
-  jobList.insertAdjacentElement("afterend", moreBtn);
+      const jobMatch = path.match(/^\/api\/admin\/jobs\/([0-9a-f-]+)$/i);
+      if (jobMatch && ["PUT", "DELETE"].includes(request.method)) {
+        if (request.method === "DELETE") {
+          const r = await db(env, `jobs?id=eq.${jobMatch[1]}`, { method: "DELETE" });
+          return json({ ok: r.ok }, r.ok ? 200 : 502, cors);
+        }
+        const b = await request.json();
+        const allowedFields = ["title","company_name","country","city","salary","vacancies","qualification","experience","job_type","description","eligibility","benefits","last_date","status"];
+        const record = {};
+        for (const k of allowedFields) if (b[k] !== undefined) record[k] = typeof b[k] === "string" ? cleanText(b[k], k === "description" ? 8000 : 2000) : b[k];
+        const r = await db(env, `jobs?id=eq.${jobMatch[1]}`, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(record) });
+        const t = await r.text();
+        return new Response(t || JSON.stringify({ ok: r.ok }), { status: r.status, headers: { ...cors, "Content-Type": "application/json" } });
+      }
 
-  function updateJobsView() {
-    const cards = Array.from(jobList.querySelectorAll(".job-card"));
+      if (path === "/api/admin/applications" && request.method === "GET") {
+        const r = await db(env, "applications?select=id,job_id,candidate_name,phone,email,message,document_path,status,created_at,jobs(title)&order=created_at.desc&limit=300");
+        const t = await r.text();
+        if (!r.ok) return json({ error: "Applications load nahi hui. Supabase relationship check karein." }, 502, cors);
+        return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
+      }
 
-    cards.forEach((card, index) => {
-      card.style.display = (!expanded && index >= 8) ? "none" : "";
-    });
+      if (path === "/api/admin/success-stories" && request.method === "GET") {
+        const r = await db(env, "success_stories?select=id,application_id,candidate_name,job_title,country,status,created_at&order=created_at.desc&limit=300");
+        const t = await r.text();
+        if (!r.ok) return json({ error: "Success stories load nahi hui. Pehle migration SQL run karein." }, 502, cors);
+        return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
+      }
 
-    moreBtn.style.display = cards.length > 8 ? "block" : "none";
-    moreBtn.textContent = expanded
-      ? "Show Less ↑"
-      : "Show More Jobs ↓";
-  }
+      // Backfill stories for candidates selected before this feature was deployed.
+      // Existing story status is preserved, so an admin Draft stays Draft.
+      if (path === "/api/admin/success-stories/sync" && request.method === "POST") {
+        const ar = await db(env, "applications?select=id,candidate_name,jobs(title,country)&status=eq.selected&order=created_at.desc&limit=300");
+        const at = await ar.text();
+        if (!ar.ok) return json({ error: "Selected candidates load nahi hue. Database schema check karein." }, 502, cors);
+        let apps;
+        try { apps = JSON.parse(at); } catch { return json({ error: "Applications response samajh nahi aaya." }, 502, cors); }
+        let created = 0, existing = 0;
+        for (const a of apps) {
+          const er = await db(env, `success_stories?select=id&application_id=eq.${encodeURIComponent(a.id)}&limit=1`);
+          if (!er.ok) return json({ error: "Success stories table read nahi hui. Migration SQL check karein." }, 502, cors);
+          const found = await er.json();
+          if (found.length) { existing++; continue; }
+          const job = a.jobs || {};
+          const ir = await db(env, "success_stories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+            body: JSON.stringify({ application_id: a.id, candidate_name: a.candidate_name, job_title: job.title || "Gulf Job", country: job.country || "Gulf", status: "published" })
+          });
+          if (!ir.ok) return json({ error: "Ek selected candidate ki story create nahi hui. Migration aur table columns check karein.", created, existing }, 502, cors);
+          created++;
+        }
+        return json({ ok: true, selected: apps.length, created, existing, message: `${created} nayi stories publish hui; ${existing} existing stories ka status jaisa tha waisa rakha gaya.` }, 200, cors);
+      }
 
-  moreBtn.addEventListener("click", function () {
-    expanded = !expanded;
-    updateJobsView();
+      const storyMatch = path.match(/^\/api\/admin\/success-stories\/([0-9a-f-]+)$/i);
+      if (storyMatch && request.method === "PATCH") {
+        const b = await request.json();
+        if (!["draft", "published"].includes(b.status)) return json({ error: "Story status valid nahi hai." }, 400, cors);
+        const r = await db(env, `success_stories?id=eq.${storyMatch[1]}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({ status: b.status, updated_at: new Date().toISOString() })
+        });
+        if (!r.ok) return json({ error: "Story status update nahi hua." }, 502, cors);
+        return json({ ok: true }, 200, cors);
+      }
 
-    if (!expanded) {
-      document.getElementById("jobs").scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
+      const appStatusMatch = path.match(/^\/api\/admin\/applications\/([0-9a-f-]+)$/i);
+      if (appStatusMatch && request.method === "PATCH") {
+        const b = await request.json();
+        if (!["new", "reviewing", "selected", "rejected"].includes(b.status)) return json({ error: "Status valid nahi hai." }, 400, cors);
+        const r = await db(env, `applications?id=eq.${appStatusMatch[1]}`, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ status: b.status }) });
+        if (!r.ok) return json({ error: "Application status update nahi hua." }, 502, cors);
+
+        // Only public, non-sensitive fields are copied to the story table.
+        const existingResponse = await db(env, `success_stories?select=id,status&application_id=eq.${appStatusMatch[1]}&limit=1`);
+        if (!existingResponse.ok) return json({ error: "Application status update ho gaya, lekin story table setup check karein." }, 502, cors);
+        const existingStories = await existingResponse.json();
+        if (b.status === "selected") {
+          const ar = await db(env, `applications?select=id,candidate_name,jobs(title,country)&id=eq.${appStatusMatch[1]}&limit=1`);
+          if (!ar.ok) return json({ error: "Selected candidate details load nahi hui." }, 502, cors);
+          const apps = await ar.json();
+          if (!apps.length) return json({ error: "Application nahi mili." }, 404, cors);
+          const a = apps[0], job = a.jobs || {};
+          const storyData = { application_id: a.id, candidate_name: a.candidate_name, job_title: job.title || "Gulf Job", country: job.country || "Gulf" };
+          if (existingStories.length) {
+            // Marking an application Selected republishes its story; admin can later Draft it.
+            const upd = await db(env, `success_stories?id=eq.${existingStories[0].id}`, {
+              method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+              body: JSON.stringify({ ...storyData, status: "published", updated_at: new Date().toISOString() })
+            });
+            if (!upd.ok) return json({ error: "Selected status save hua, story update nahi hui." }, 502, cors);
+          } else {
+            const ins = await db(env, "success_stories", {
+              method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+              body: JSON.stringify({ ...storyData, status: "published" })
+            });
+            if (!ins.ok) return json({ error: "Selected status save hua, story create nahi hui. Migration SQL check karein." }, 502, cors);
+          }
+        } else if (existingStories.length) {
+          const upd = await db(env, `success_stories?id=eq.${existingStories[0].id}`, {
+            method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
+            body: JSON.stringify({ status: "draft", updated_at: new Date().toISOString() })
+          });
+          if (!upd.ok) return json({ error: "Application status save hua, story ko Draft nahi kar paye." }, 502, cors);
+        }
+        return json({ ok: true }, 200, cors);
+      }
+
+      const docMatch = path.match(/^\/api\/admin\/documents\/([0-9a-f-]+)$/i);
+      if (docMatch && request.method === "GET") {
+        const ar = await db(env, `applications?id=eq.${docMatch[1]}&select=document_path&limit=1`);
+        if (!ar.ok) return json({ error: "Document record nahi mila." }, 502, cors);
+        const rows = await ar.json();
+        if (!rows.length || !rows[0].document_path) return json({ error: "Document nahi mila." }, 404, cors);
+        const signUrl = env.SUPABASE_URL.replace(/\/$/, "") + "/storage/v1/object/sign/gulf-applications/" + rows[0].document_path;
+        const sr = await fetch(signUrl, { method: "POST", headers: supabaseHeaders(env, { "Content-Type": "application/json" }), body: JSON.stringify({ expiresIn: 60 }) });
+        const data = await sr.json();
+        if (!sr.ok) return json({ error: "Private PDF link create nahi hui." }, 502, cors);
+        const signed = data.signedURL || data.signedUrl;
+        return json({ url: signed?.startsWith("http") ? signed : env.SUPABASE_URL.replace(/\/$/, "") + "/storage/v1" + signed }, 200, cors);
+      }
+
+      if (path.startsWith("/api/")) return json({ error: "API route nahi mila." }, 404, cors);
+      return env.ASSETS.fetch(request);
+    } catch (e) {
+      return json({ error: "Server par error aaya. Settings aur logs check karein.", detail: (env.ENVIRONMENT === "development" ? String(e) : undefined) }, 500, cors);
     }
-  });
-
-  new MutationObserver(updateJobsView).observe(jobList, {
-    childList: true
-  });
-
-  updateJobsView();
-})();
+  }
+};
