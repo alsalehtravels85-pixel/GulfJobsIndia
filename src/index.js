@@ -118,14 +118,16 @@ function isPdf(bytes) {
     bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d;
 }
 
-// Remove published/closed jobs two calendar months after their application deadline.
-// Applications are preserved by the existing ON DELETE SET NULL relationship;
-// candidate PDFs are stored separately and are not touched here.
-function twoCalendarMonthsAgoUTC(now = new Date()) {
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth();
-  const day = now.getUTCDate();
-  const targetMonthIndex = month - 2;
+// Delete only non-draft jobs once two calendar months have elapsed after last_date.
+// The applications table uses ON DELETE SET NULL; Storage files are untouched.
+function addCalendarMonthsToDate(dateString, months) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString || ""));
+  if (!match) return null;
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  if (monthIndex < 0 || monthIndex > 11 || day < 1 || day > 31) return null;
+  const targetMonthIndex = monthIndex + months;
   const targetYear = year + Math.floor(targetMonthIndex / 12);
   const normalizedMonth = ((targetMonthIndex % 12) + 12) % 12;
   const lastDay = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate();
@@ -137,24 +139,50 @@ async function deleteExpiredJobs(env, now = new Date()) {
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error("Supabase Worker secrets are not configured.");
   }
-  const cutoff = twoCalendarMonthsAgoUTC(now);
-  const listResponse = await db(env, `jobs?select=id,last_date&last_date=not.is.null&last_date=lte.${cutoff}&limit=500`);
-  const listText = await listResponse.text();
-  if (!listResponse.ok) throw new Error(`Could not list expired jobs (${listResponse.status}): ${listText.slice(0, 300)}`);
-  const expired = JSON.parse(listText || "[]");
+  const today = now.toISOString().slice(0, 10);
+  const pageSize = 500;
+  let offset = 0;
+  const expiredIds = [];
+  let scanned = 0;
+
+  // Paginate all published/closed jobs; drafts are deliberately excluded.
+  while (true) {
+    const pageResponse = await db(
+      env,
+      `jobs?select=id,last_date,status&status=in.(published,closed)&last_date=not.is.null&order=last_date.asc`,
+      { headers: { Range: `${offset}-${offset + pageSize - 1}`, "Range-Unit": "items" } }
+    );
+    const pageText = await pageResponse.text();
+    if (!pageResponse.ok) {
+      throw new Error(`Could not list jobs (${pageResponse.status}): ${pageText.slice(0, 300)}`);
+    }
+    const rows = JSON.parse(pageText || "[]");
+    scanned += rows.length;
+    expiredIds.push(...rows.filter(row => {
+      const deleteOn = addCalendarMonthsToDate(row.last_date, 2);
+      return row.id && deleteOn && deleteOn <= today;
+    }).map(row => row.id));
+    if (rows.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  // Delete only after pagination finishes, so deleting page 1 cannot shift page 2.
   let deleted = 0;
-  for (let i = 0; i < expired.length; i += 100) {
-    const ids = expired.slice(i, i + 100).map(row => row.id).filter(Boolean);
-    if (!ids.length) continue;
-    const response = await db(env, `jobs?id=in.(${ids.join(",")})`, {
+  for (let i = 0; i < expiredIds.length; i += 100) {
+    const ids = expiredIds.slice(i, i + 100);
+    const deleteResponse = await db(env, `jobs?id=in.(${ids.join(",")})`, {
       method: "DELETE", headers: { Prefer: "return=representation" }
     });
-    const body = await response.text();
-    if (!response.ok) throw new Error(`Could not delete expired jobs (${response.status}): ${body.slice(0, 300)}`);
-    try { const rows = JSON.parse(body || "[]"); deleted += Array.isArray(rows) ? rows.length : ids.length; }
-    catch { deleted += ids.length; }
+    const deleteText = await deleteResponse.text();
+    if (!deleteResponse.ok) {
+      throw new Error(`Could not delete expired jobs (${deleteResponse.status}): ${deleteText.slice(0, 300)}`);
+    }
+    try {
+      const removed = JSON.parse(deleteText || "[]");
+      deleted += Array.isArray(removed) ? removed.length : ids.length;
+    } catch { deleted += ids.length; }
   }
-  return { cutoff, found: expired.length, deleted };
+  return { today, scanned, found: expiredIds.length, deleted, draftsExcluded: true };
 }
 
 export default {
