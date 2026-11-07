@@ -198,14 +198,14 @@ document.querySelectorAll(".admin-tabs button").forEach(btn => {
 
       const source = Array.isArray(raw)
         ? raw[0]
-        : (raw.job || (Array.isArray(raw.jobs) ? raw.jobs[0] : raw));
+        : (raw.job || raw.data?.job || raw.data || (Array.isArray(raw.jobs) ? raw.jobs[0] : raw));
 
       if (!source || typeof source !== "object" || Array.isArray(source))
         throw new Error("JSON mein job object nahi mila.");
 
       const aliases = {
         title: ["title", "job_title", "post_title", "position", "jobTitle"],
-        company_name: ["company_name", "company", "employer", "companyName"],
+        company_name: ["company_name", "company_employer", "company", "employer", "companyName", "companyEmployer"],
         country: ["country", "job_country", "location_country"],
         city: ["city", "location", "job_location"],
         salary: ["salary", "package", "salary_package", "pay"],
@@ -231,7 +231,16 @@ document.querySelectorAll(".admin-tabs button").forEach(btn => {
         if (field === "job_type") value = normalizeJobType(value);
 
         if (field === "vacancies") {
-          value = Math.max(1, Number.parseInt(value || "1", 10) || 1);
+          const vacancyText = String(value ?? "").trim();
+          const isUnknown = !vacancyText || /^(not specified|not available|n\/?a|na|unknown|-)$/i.test(vacancyText);
+          if (isUnknown) {
+            value = "";
+          } else {
+            const parsedVacancies = Number.parseInt(vacancyText.replace(/,/g, ""), 10);
+            value = Number.isFinite(parsedVacancies) && parsedVacancies >= 1
+              ? parsedVacancies
+              : "";
+          }
         }
 
         if (field === "last_date") {

@@ -1,37 +1,284 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#064e3b"><title>GulfJobsIndia Admin</title><link rel="stylesheet" href="/style.css?v=20261105-premium"></head>
-<body class="admin-page">
-<header class="admin-header"><div class="container"><a class="brand" href="/"><span class="brand-mark">GJ</span><span>GulfJobs<span class="gold">India</span><small style="color:#d2e8dd">ADMIN PANEL</small></span></a><a class="btn btn-outline" href="/">← View website</a></div></header>
-<main class="container admin-main">
-  <section id="loginPanel" class="admin-card" style="max-width:440px;margin:30px auto"><h3>Admin Login</h3><p style="font-size:12px;color:var(--muted)">Apna admin password enter karein.</p><form id="loginForm"><label>Admin password<input name="password" type="password" required autocomplete="current-password" maxlength="200"></label><button class="btn btn-green full" type="submit" id="loginBtn">Login</button><p id="loginMessage" class="admin-message"></p></form></section>
-  <section id="dashboard" class="hidden">
-    <div class="section-heading"><div><span class="eyebrow">CONTROL CENTER</span><h2>Admin Dashboard</h2></div><button class="btn btn-outline" id="logoutBtn" style="color:var(--green);border-color:var(--line)">Logout</button></div>
-    <div class="admin-tabs"><button class="active" data-tab="jobsTab">Manage Jobs</button><button data-tab="applicationsTab">Applications</button><button data-tab="agentsTab">Agents</button><button data-tab="storiesTab">Success Stories</button></div>
-    <section id="jobsTab" class="admin-panel">
-      <form id="jobForm" class="admin-card"><h3 id="jobFormTitle">Add a Gulf Job</h3><input type="hidden" name="id">
-        <div class="admin-form-grid">
-          <label>Job title *<input name="title" required maxlength="160" placeholder="e.g. Electrician"></label>
-          <label>Company / employer *<input name="company_name" required maxlength="160" placeholder="Employer name"></label>
-          <label>Country *<select name="country" required><option value="">Select country</option><option>Saudi Arabia</option><option>UAE</option><option>Kuwait</option><option>Oman</option><option>Bahrain</option></select></label>
-          <label>City<input name="city" maxlength="100" placeholder="e.g. Riyadh"></label>
-          <label>Salary / package<input name="salary" maxlength="100" placeholder="e.g. SAR 1800 + food"></label>
-          <label>Vacancies<input name="vacancies" type="number" min="1" value="1"></label>
-          <label>Qualification<input name="qualification" maxlength="500" placeholder="e.g. 10th pass / ITI"></label>
-          <label>Experience<input name="experience" maxlength="200" placeholder="e.g. 2 years"></label>
-          <label>Job type<select name="job_type"><option>Full Time</option><option>Contract</option><option>Temporary</option></select></label>
-          <label>Last date<input name="last_date" type="date"></label>
-          <label>Publication status<select name="status"><option value="published">Published</option><option value="draft">Draft</option><option value="closed">Closed</option></select></label>
-          <label>Benefits<input name="benefits" maxlength="2000" placeholder="Food, accommodation, transport…"></label>
+<html lang="en">
+<head>
+   
+   <meta name="google-site-verification" content="t07TZCX3QtcYhf_8JRlaJ3JMTXmvq2wlXLyGRQrrIjE" />
+  <meta name="msvalidate.01" content="FD39683AA56D1CA8061306AEBA47B630" />
+  <link rel="icon" type="image/png" href="/favicon.png">
+<link rel="shortcut icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08172b">
+  <meta name="description" content="Explore Gulf job opportunities in Saudi Arabia, UAE, Kuwait, Oman and Bahrain. Check job details and apply online.">
+  <title>GulfJobsIndia — Gulf Jobs & Overseas Careers</title>
+  <link rel="stylesheet" href="/style.css?v=20261105-status-color-v2">
+</head>
+<body>
+
+<div class="top-ticker" aria-label="Gulf job updates">
+  <span class="ticker-arrow">‹‹</span>
+  <div class="ticker-window"><div class="ticker-track">
+    <span>✈ Latest Gulf Jobs</span><b>•</b><span>Saudi Arabia</span><b>•</b><span>UAE</span><b>•</b><span>Kuwait</span><b>•</b><span>Oman</span><b>•</b><span>Bahrain</span><b>•</b><span>Direct Recruitment</span><b>•</b><span>Verified Opportunities</span><b>•</b>
+    <span>✈ Latest Gulf Jobs</span><b>•</b><span>Saudi Arabia</span><b>•</b><span>UAE</span><b>•</b><span>Kuwait</span><b>•</b><span>Oman</span><b>•</b><span>Bahrain</span><b>•</b><span>Direct Recruitment</span><b>•</b><span>Verified Opportunities</span><b>•</b>
+  </div></div><span class="ticker-arrow">››</span>
+</div>
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/" aria-label="GulfJobsIndia home">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span>GulfJobs<span class="gold">India</span><small>Gulf Recruitment &amp; Manpower Services</small></span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+    <nav id="mainNav">
+      <a class="active" href="/">⌂ Home</a><a href="#jobs">▣ Jobs</a><a href="#success-stories">☑ Selected</a><a href="#status-check">▣ Check Status</a><a href="#countries">◎ Countries</a><a href="/about.html">ⓘ About</a><a href="/contact.html">☎ Contact</a>
+      <a class="nav-login nav-admin" href="/admin.html">♙ Admin Login</a><a class="nav-login nav-agent" href="/agent.html">♟ Agent Login</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <section class="hero hero-premium">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <span class="hero-kicker">Gulf Recruitment Portal</span>
+        <h1>Find Best Jobs in<br><span class="gold">Saudi, UAE, Kuwait, Oman &amp; Bahrain</span></h1>
+        <p>Trusted Gulf Job Portal for Candidates &amp; Recruitment Agents</p>
+        <div class="trust-row"><span>✓ Verified Jobs</span><span>✓ Direct Recruitment</span><span>✓ Agent Support</span><span>✓ Easy Application</span></div>
+        <div class="hero-actions"><a class="btn btn-gold" href="#jobs">Explore Jobs <span>→</span></a><a class="btn btn-outline" href="/agent.html">♟ Register as Agent</a></div>
+      </div>
+      <div class="hero-scene" aria-label="Gulf career opportunities">
+        <div class="scene-sun"></div><div class="scene-plane">✈</div><div class="scene-city"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="scene-burj"></div><div class="scene-worker"><div class="worker-head"></div><div class="worker-helmet"></div><div class="worker-body"></div><div class="worker-vest"></div></div>
+        <div class="scene-caption">YOUR FUTURE STARTS HERE <span>INDIA → GULF</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="search-section">
+    <div class="container search-box">
+      <label class="search-label" for="searchInput">Find a job</label>
+      <div class="search-controls">
+        <input id="searchInput" type="search" placeholder="Job title, company or city…">
+
+        <select id="countryFilter" aria-label="Filter by country">
+          <option value="">All countries</option>
+          <option>Saudi Arabia</option>
+          <option>UAE</option>
+          <option>Kuwait</option>
+          <option>Oman</option>
+          <option>Bahrain</option>
+        </select>
+
+        <button class="btn btn-green" id="searchBtn">Search Jobs</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="countries" class="section">
+    <div class="container">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">EXPLORE BY DESTINATION</span>
+          <h2>Explore Gulf Countries</h2>
         </div>
-        <label>Job description *<textarea name="description" rows="4" required maxlength="8000" placeholder="Responsibilities, working hours and verified job details…"></textarea></label>
-        <label>Eligibility / additional requirements<textarea name="eligibility" rows="2" maxlength="2000" placeholder="Any other requirements (optional)"></textarea></label>
-        <button class="btn btn-green" type="submit" id="saveJobBtn">Save Job</button> <button class="btn btn-outline hidden" type="button" id="cancelEditBtn" style="color:var(--green);border-color:var(--line)">Cancel edit</button><p id="jobMessage" class="admin-message"></p>
+        <p>Find opportunities across five destinations.</p>
+      </div>
+
+      <div class="country-grid">
+        <button class="country-card" data-country="Saudi Arabia">
+          <span class="flag">🇸🇦</span><strong>Saudi Arabia</strong><small>View jobs →</small>
+        </button>
+        <button class="country-card" data-country="UAE">
+          <span class="flag">🇦🇪</span><strong>UAE / Dubai</strong><small>View jobs →</small>
+        </button>
+        <button class="country-card" data-country="Kuwait">
+          <span class="flag">🇰🇼</span><strong>Kuwait</strong><small>View jobs →</small>
+        </button>
+        <button class="country-card" data-country="Oman">
+          <span class="flag">🇴🇲</span><strong>Oman</strong><small>View jobs →</small>
+        </button>
+        <button class="country-card" data-country="Bahrain">
+          <span class="flag">🇧🇭</span><strong>Bahrain</strong><small>View jobs →</small>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section id="jobs" class="section jobs-section">
+    <div class="container">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">FRESH OPPORTUNITIES</span>
+          <h2>Latest Gulf Job Opportunities</h2>
+        </div>
+        <span class="pill" id="jobCount">Loading jobs…</span>
+      </div>
+
+    <div id="jobList" class="job-grid">
+  <div class="empty-state">Loading current opportunities…</div>
+</div>
+
+      <div id="noJobs" class="empty-state hidden">
+        Abhi koi job listed nahi hai. Nayi vacancies ke liye baad mein check karein.
+      </div>
+    </div>
+  </section>
+
+  <section id="success-stories" class="section success-section">
+    <div class="container">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">CANDIDATE UPDATES</span>
+          <h2>🎉 Selected Candidates</h2>
+          <p class="section-intro">Candidates marked as selected by our admin team. Personal contact details and documents are never shown here.</p>
+        </div>
+        <span class="pill" id="storyCount">Loading…</span>
+      </div>
+
+      <div id="successStories" class="success-grid">
+        <div class="empty-state">Loading candidate updates…</div>
+      </div>
+
+      <div id="noStories" class="empty-state hidden">
+        Abhi selected candidates ki updates available nahi hain.
+      </div>
+
+      <div class="show-more-wrap">
+        <button id="showMoreStories" class="btn btn-green show-more hidden"
+          type="button" aria-expanded="false">
+          Show More Candidates ↓
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section how-section">
+    <div class="container">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">SIMPLE PROCESS</span>
+          <h2>How to Apply</h2>
+        </div>
+      </div>
+
+      <div class="steps-grid">
+        <article class="step">
+          <span>01</span>
+          <h3>Choose a Job</h3>
+          <p>Read the salary, location, eligibility and last date carefully.</p>
+        </article>
+        <article class="step">
+          <span>02</span>
+          <h3>Prepare One PDF</h3>
+          <p>Combine your required documents into one PDF, up to 10 MB.</p>
+        </article>
+        <article class="step">
+          <span>03</span>
+          <h3>Submit Application</h3>
+          <p>Enter your name and phone number, attach the PDF and submit.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="status-check" class="section status-check-section">
+    <div class="container status-check-layout">
+      <div class="status-check-intro">
+        <span class="eyebrow">APPLICATION TRACKER</span>
+        <h2>Check Your Application Status</h2>
+        <p>Apna registered mobile number enter karein. Agar aapne ek se zyada jobs ke liye apply kiya hai, to sabhi applications ka status yahan dikhega.</p>
+        <div class="status-privacy-note"><span aria-hidden="true">🔒</span><span>Yahan sirf Job Title aur Application Status dikhaya jayega. Aapka naam, email aur documents private rahenge.</span></div>
+      </div>
+      <div class="form-card status-check-card">
+        <form id="statusCheckForm" novalidate>
+          <label for="statusPhone">Registered mobile number <span>*</span>
+            <input id="statusPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="98765 43210" required>
+          </label>
+          <button class="btn btn-green full" id="checkStatusBtn" type="submit">Check Status</button>
+        </form>
+        <p id="statusCheckMessage" class="form-message" role="status" aria-live="polite"></p>
+        <div id="statusResults" class="status-results" aria-live="polite"></div>
+        <small>Note: Mobile number se status dekhne ke liye wahi number enter karein jo application submit karte waqt diya tha.</small>
+      </div>
+    </div>
+  </section>
+
+  <section id="apply" class="section apply-section">
+    <div class="container apply-layout">
+      <div>
+        <span class="eyebrow">START YOUR APPLICATION</span>
+        <h2>Apply in a Few Steps</h2>
+        <p>Keep the form simple. Only your name, mobile number and one PDF are required. Email is optional.</p>
+
+        <div class="secure-note">
+          <span>🔒</span>
+          <div>
+            <strong>Your document is private</strong>
+            <p>Uploaded documents are stored in private storage and can only be reviewed through the admin panel.</p>
+          </div>
+        </div>
+      </div>
+
+      <form id="applicationForm" class="form-card">
+        <h3>Candidate Application</h3>
+
+        <label>Full name <span>*</span>
+          <input name="candidate_name" required maxlength="100" placeholder="Enter your full name">
+        </label>
+
+        <label>Mobile number <span>*</span>
+          <input name="phone" required maxlength="20" inputmode="tel" placeholder="+91 98765 43210">
+        </label>
+
+        <label>Email <small>(optional)</small>
+          <input name="email" type="email" maxlength="160" placeholder="you@example.com">
+        </label>
+
+        <label>Applying for <span>*</span>
+          <select name="job_id" id="applyJob" required>
+            <option value="">Select a published job</option>
+          </select>
+        </label>
+
+        <label>Documents — one PDF only <span>*</span>
+          <input name="document" type="file" accept="application/pdf,.pdf" required>
+          <small>Combine passport copy, photo, CV and relevant certificates in one PDF. Maximum 10 MB.</small>
+        </label>
+
+        <label>Message <small>(optional)</small>
+          <textarea name="message" rows="2" maxlength="1000" placeholder="Any short note (optional)"></textarea>
+        </label>
+
+        <button class="btn btn-green full" type="submit" id="submitApplication">Submit Application</button>
+        <p id="formMessage" class="form-message" role="status"></p>
+        <small>Submit only documents you are comfortable sharing for recruitment purposes.</small>
       </form>
-      <section class="admin-card"><h3>All Jobs</h3><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Job</th><th>Country</th><th>Status</th><th>Actions</th></tr></thead><tbody id="adminJobsRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div></section>
-    </section>
-    <section id="agentsTab" class="admin-panel hidden"><div class="admin-card"><h3>Agent Accounts</h3><p style="font-size:12px;color:var(--muted)">Pending agents ko approve karein. Approved agents candidate applications submit kar sakte hain, jobs post nahi.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Agent</th><th>Agency</th><th>Status</th><th>Action</th></tr></thead><tbody id="agentsRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div><p id="agentsMessage" class="admin-message"></p></div></section>
-    <section id="applicationsTab" class="admin-panel hidden"><div class="admin-card"><h3>Candidate Applications</h3><p style="font-size:11px;color:var(--muted)">Private PDF links expire quickly. Download only when needed.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Candidate</th><th>Job</th><th>Submitted</th><th>Status</th><th>Document</th></tr></thead><tbody id="applicationsRows"><tr><td colspan="5">Loading…</td></tr></tbody></table></div><p id="applicationMessage" class="admin-message"></p></div></section>
-    <section id="storiesTab" class="admin-panel hidden"><div class="admin-card"><div class="admin-card-heading"><div><span class="eyebrow">PUBLIC CANDIDATE UPDATES</span><h3>Candidate Success Stories</h3></div><div class="admin-card-actions"><button class="btn btn-outline" id="syncStoriesBtn" type="button">Sync Selected Candidates</button><button class="btn btn-green" type="button" id="refreshStoriesBtn">Refresh</button></div></div><p class="admin-help">Application status Selected karne par story publish hoti hai. Agar candidate pehle se Selected tha, to “Sync Selected Candidates” dabayein. Draft karne par story portal se hide ho jayegi. Phone, email aur PDF public nahi hote.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Candidate / Job</th><th>Added</th><th>Status</th><th>Publish / Draft</th></tr></thead><tbody id="storiesRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div><p id="storiesMessage" class="admin-message" role="status"></p></div></section>
+    </div>
   </section>
 </main>
-<script src="/admin.js" defer></script></body></html>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <a class="brand footer-brand" href="/">
+      <span class="brand-mark">GJ</span>
+      <span>GulfJobs<span class="gold">India</span><small>Gulf Careers • India</small></span>
+    </a>
+
+    <div>
+      <a href="/about.html">About Us</a>
+      <a href="/contact.html">Contact Us</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </div>
+
+    <p>© <span id="year"></span> GulfJobsIndia. Verify all job details before applying.</p>
+  </div>
+</footer>
+
+<a class="floating-whatsapp" id="floatingWhatsApp"
+  href="https://wa.me/918576850306" target="_blank" rel="noopener"
+  aria-label="Contact on WhatsApp">☏ <span>WhatsApp</span></a>
+
+<script src="/app.js" defer></script>
+</body>
+</html>
