@@ -565,3 +565,36 @@ childList: true
 updateJobsView();
 })();
 
+
+/* GULF AVIATION / VISA LIVE NEWS TICKER — Server monitored every 5 minutes */
+(function initGulfLiveTicker(){
+  const root=document.getElementById("gjTickerItems");
+  const clock=document.getElementById("gjTickerClock");
+  if(!root||!clock)return;
+  const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  const fmtClock=()=>new Intl.DateTimeFormat("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:true}).format(new Date());
+  const updateClock=()=>{clock.textContent=fmtClock()+" IST";};
+  updateClock();setInterval(updateClock,30000);
+  const MAX_AGE=36*60*60*1000;
+  async function load(){
+    try{
+      const response=await fetch(API+"/api/news",{headers:{Accept:"application/json"},cache:"no-store"});
+      if(!response.ok)throw new Error("News API "+response.status);
+      const rows=await response.json();
+      const fresh=Array.isArray(rows)?rows.filter(item=>{
+        const age=Date.now()-Date.parse(item.published_at);
+        return item.title&&item.url&&/^https?:\\/\\//i.test(item.url)&&age>=-300000&&age<=MAX_AGE&&["flight","visa"].includes(item.category);
+      }):[];
+      const links=fresh.map(item=>'<a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">'+esc(item.title)+'</a>');
+      const job=Array.isArray(allJobs)?allJobs.find(item=>String(item.status||"").toLowerCase()==="published"):null;
+      if(job)links.push('<a class="gj-ticker-ad" href="#jobs">📢 GULF JOB: '+esc(job.title||"New vacancy")+' — '+esc(job.country||"Gulf")+' | Apply on GulfJobsIndia</a>');
+      if(!links.length){root.innerHTML='<span class="gj-ticker-placeholder">Nayi aviation ya visa news abhi available nahi hai. Updates automatically check ho rahe hain.</span>';return;}
+      const sequence=links.join('<span aria-hidden="true">✦</span>');
+      root.innerHTML=sequence+sequence;
+    }catch(error){
+      console.warn("Gulf live ticker:",error);
+      root.innerHTML='<span class="gj-ticker-placeholder">News service temporarily unavailable — automatic retry jaari hai.</span>';
+    }
+  }
+  load();setInterval(load,5*60*1000);
+})();
