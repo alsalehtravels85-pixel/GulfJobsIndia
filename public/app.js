@@ -583,7 +583,7 @@ updateJobsView();
       const rows=await response.json();
       const fresh=Array.isArray(rows)?rows.filter(item=>{
         const age=Date.now()-Date.parse(item.published_at);
-        return item.title&&item.url&&/^https?:\\/\\//i.test(item.url)&&age>=-300000&&age<=MAX_AGE&&["flight","visa"].includes(item.category);
+        return item.title&&item.url&&/^https?:\/\//i.test(item.url)&&age>=-300000&&age<=MAX_AGE&&["flight","visa"].includes(item.category);
       }):[];
       const links=fresh.map(item=>'<a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">'+esc(item.title)+'</a>');
       const job=Array.isArray(allJobs)?allJobs.find(item=>String(item.status||"").toLowerCase()==="published"):null;
