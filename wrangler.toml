@@ -13,4 +13,4 @@ WHATSAPP_NUMBER = "918576850306"
 ALLOWED_ORIGIN = "*"
 
 [triggers]
-crons = ["0 3 * * *"] # Daily 08:30 AM India time
+crons = ["*/5 * * * *", "0 3 * * *"] # News every 5 min; cleanup daily at 08:30 AM IST
