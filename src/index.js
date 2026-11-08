@@ -143,7 +143,7 @@ const NEWS_FEEDS = [
 ];
 
 function xmlDecode(value) {
-  return String(value || "").replace(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/g, "$1")
+  return String(value || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'");
 }
@@ -152,12 +152,12 @@ function xmlTag(block, name) {
   return match ? xmlDecode(match[1]).replace(/<[^>]+>/g, "").trim() : "";
 }
 function parseNewsRss(xml, category, nowMs) {
-  const items = String(xml || "").match(/<item(?:\\s[^>]*)?>[\\s\\S]*?<\\/item\\s*>/gi) || [];
+  const items = String(xml || "").match(/<item(?:\s[^>]*)?>[\s\S]*?<\/item\s*>/gi) || [];
   return items.map(item => {
     const title = xmlTag(item, "title");
     const link = xmlTag(item, "link");
     const publishedMs = Date.parse(xmlTag(item, "pubDate") || xmlTag(item, "published") || xmlTag(item, "updated"));
-    if (!title || !/^https?:\\/\\//i.test(link) || !Number.isFinite(publishedMs)) return null;
+    if (!title || !/^https?:\/\//i.test(link) || !Number.isFinite(publishedMs)) return null;
     if (publishedMs > nowMs + 5 * 60 * 1000 || nowMs - publishedMs > NEWS_MAX_AGE_MS) return null;
     return { title: title.slice(0, 500), url: link.slice(0, 2000), source: "Google News", category, published_at: new Date(publishedMs).toISOString() };
   }).filter(Boolean);
