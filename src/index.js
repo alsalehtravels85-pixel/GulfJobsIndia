@@ -135,6 +135,54 @@ function addCalendarMonthsToDate(dateString, months) {
   return `${targetYear}-${String(normalizedMonth + 1).padStart(2, "0")}-${String(targetDay).padStart(2, "0")}`;
 }
 
+// Gulf aviation and visa/immigration headlines are collected by the Worker Cron.
+const NEWS_MAX_AGE_MS = 36 * 60 * 60 * 1000;
+const NEWS_FEEDS = [
+  { category: "flight", url: "https://news.google.com/rss/search?q=(Gulf+OR+UAE+OR+Saudi+OR+Qatar+OR+Oman+OR+Kuwait)+airline+OR+airport+OR+flight+OR+aviation&hl=en&gl=US&ceid=US:en" },
+  { category: "visa", url: "https://news.google.com/rss/search?q=(Gulf+OR+UAE+OR+Saudi+Arabia+OR+Oman+OR+Kuwait+OR+Bahrain)+visa+OR+immigration+OR+work+permit&hl=en&gl=US&ceid=US:en" }
+];
+
+function xmlDecode(value) {
+  return String(value || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'");
+}
+function xmlTag(block, name) {
+  const match = block.match(new RegExp("<" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + name + "\\s*>", "i"));
+  return match ? xmlDecode(match[1]).replace(/<[^>]+>/g, "").trim() : "";
+}
+function parseNewsRss(xml, category, nowMs) {
+  const items = String(xml || "").match(/<item(?:\s[^>]*)?>[\s\S]*?<\/item\s*>/gi) || [];
+  return items.map(item => {
+    const title = xmlTag(item, "title");
+    const link = xmlTag(item, "link");
+    const publishedMs = Date.parse(xmlTag(item, "pubDate") || xmlTag(item, "published") || xmlTag(item, "updated"));
+    if (!title || !/^https?:\/\//i.test(link) || !Number.isFinite(publishedMs)) return null;
+    if (publishedMs > nowMs + 5 * 60 * 1000 || nowMs - publishedMs > NEWS_MAX_AGE_MS) return null;
+    return { title: title.slice(0, 500), url: link.slice(0, 2000), source: "Google News", category, published_at: new Date(publishedMs).toISOString() };
+  }).filter(Boolean);
+}
+async function collectGulfNews(env, now = new Date()) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) throw new Error("Supabase Worker secrets are not configured.");
+  const nowMs = now.getTime();
+  const results = await Promise.allSettled(NEWS_FEEDS.map(async feed => {
+    const response = await fetch(feed.url, { headers: { "User-Agent": "GulfJobsIndia-NewsMonitor/1.0", "Accept": "application/rss+xml, application/xml, text/xml" }, signal: AbortSignal.timeout(12000) });
+    if (!response.ok) throw new Error("News feed returned " + response.status);
+    return parseNewsRss(await response.text(), feed.category, nowMs);
+  }));
+  const news = [];
+  for (const result of results) if (result.status === "fulfilled") news.push(...result.value);
+  const unique = [...new Map(news.map(item => [item.url, item])).values()].sort((a,b) => Date.parse(b.published_at)-Date.parse(a.published_at)).slice(0,80);
+  for (let i=0;i<unique.length;i+=40) {
+    const response = await db(env, "gulf_news?on_conflict=url", { method:"POST", headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"}, body:JSON.stringify(unique.slice(i,i+40)) });
+    if (!response.ok) throw new Error("Could not save news ("+response.status+"): "+(await response.text()).slice(0,250));
+  }
+  const cutoff = new Date(nowMs-7*24*60*60*1000).toISOString();
+  const cleanup = await db(env,"gulf_news?published_at=lt."+encodeURIComponent(cutoff),{method:"DELETE",headers:{Prefer:"return=minimal"}});
+  if (!cleanup.ok) console.error("Old news cleanup failed:",(await cleanup.text()).slice(0,200));
+  return { fetched:news.length, unique:unique.length, feedsSucceeded:results.filter(x=>x.status==="fulfilled").length, feedsFailed:results.filter(x=>x.status==="rejected").length };
+}
+
 async function deleteExpiredJobs(env, now = new Date()) {
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error("Supabase Worker secrets are not configured.");
@@ -246,6 +294,14 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
         const t = await r.text();
         if (!r.ok) return json({ error: "Jobs load nahi ho sake.", details: t.slice(0, 300) }, 502, cors);
         return new Response(t, { status: 200, headers: { ...cors, "Content-Type": "application/json; charset=utf-8" } });
+      }
+
+      if (path === "/api/news" && request.method === "GET") {
+        const cutoff = new Date(Date.now() - NEWS_MAX_AGE_MS).toISOString();
+        const r = await db(env, "gulf_news?select=id,title,url,source,category,published_at&published_at=gte." + encodeURIComponent(cutoff) + "&order=published_at.desc&limit=40");
+        const t = await r.text();
+        if (!r.ok) return json({ error: "News abhi load nahi ho pa rahi." }, 502, cors);
+        return new Response(t, { status: 200, headers: { ...cors, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "public, max-age=60" } });
       }
 
       if (path === "/api/success-stories" && request.method === "GET") {
@@ -595,13 +651,22 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
     }
   },
 
-  // Daily at 03:00 UTC (08:30 AM India time).
-  async scheduled(_controller, env, ctx) {
-    ctx.waitUntil((async () => {
-      const result = await deleteExpiredJobs(env);
-      console.log("GulfJobsIndia auto-delete:", JSON.stringify(result));
-    })().catch(error => {
-      console.error("GulfJobsIndia auto-delete failed:", error?.message || error);
-    }));
+  // Five-minute Gulf news monitor; retain the existing daily job cleanup.
+  async scheduled(controller, env, ctx) {
+    if (controller.cron === "*/5 * * * *") {
+      ctx.waitUntil(collectGulfNews(env).then(result => {
+        console.log("GulfJobsIndia news monitor:", JSON.stringify(result));
+      }).catch(error => {
+        console.error("GulfJobsIndia news monitor failed:", error?.message || error);
+      }));
+      return;
+    }
+    if (controller.cron === "0 3 * * *") {
+      ctx.waitUntil(deleteExpiredJobs(env).then(result => {
+        console.log("GulfJobsIndia auto-delete:", JSON.stringify(result));
+      }).catch(error => {
+        console.error("GulfJobsIndia auto-delete failed:", error?.message || error);
+      }));
+    }
   }
 };
