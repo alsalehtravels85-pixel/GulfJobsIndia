@@ -194,36 +194,22 @@ export default {
 
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
-        // SEO: sitemap.xml
+    // SEO: Keep the Worker sitemap and robots.txt aligned with the Cloudflare Pages site.
     if (
       (path === "/sitemap.xml" || path === "/robots.txt") &&
       ["GET", "HEAD"].includes(request.method)
     ) {
       if (path === "/sitemap.xml") {
-        const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://gulfjobsindia.gulfjob.workers.dev/</loc>
-  </url>
-</urlset>`;
-
-        return new Response(
-          request.method === "HEAD" ? null : xml,
-          {
-            status: 200,
-            headers: {
-              "Content-Type": "application/xml; charset=UTF-8",
-              "Cache-Control": "public, max-age=3600",
-              "X-Content-Type-Options": "nosniff"
-            }
-          }
+        return Response.redirect(
+          "https://gulfjobsindia.pages.dev/sitemap.xml",
+          301
         );
       }
 
       const robots = `User-agent: *
 Allow: /
 
-Sitemap: https://gulfjobsindia.gulfjob.workers.dev/sitemap.xml
+Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
 `;
 
       return new Response(
@@ -237,6 +223,7 @@ Sitemap: https://gulfjobsindia.gulfjob.workers.dev/sitemap.xml
         }
       );
     }
+
     try {
       if (path === "/api/health" && request.method === "GET") {
         return json({ ok: true, service: "GulfJobsIndia API" }, 200, cors);
