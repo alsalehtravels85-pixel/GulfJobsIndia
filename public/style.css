@@ -2338,3 +2338,23 @@ body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:
     margin: 5px 0;
   }
 }
+
+
+/* Two-line Gulf Jobs aviation and visa live ticker */
+.gj-live-ticker{background:linear-gradient(90deg,#020b1b,#092957,#020b1b);color:#fff;border-bottom:1px solid #244b80;padding:6px clamp(10px,2vw,22px);font-size:11px;overflow:hidden}
+.gj-ticker-top{min-height:20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.gj-ticker-top strong{font-size:11px;letter-spacing:.55px;color:#f5c12e;font-weight:900;white-space:nowrap}
+.gj-ticker-top time{font-size:10px;color:#d7e5f8;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gj-ticker-bottom{height:25px;display:flex;align-items:center;gap:9px;border-top:1px solid #ffffff20;margin-top:3px;padding-top:3px}
+.gj-ticker-live{font-size:9px;letter-spacing:.7px;background:#c73535;color:white;padding:3px 6px;border-radius:3px;font-weight:900;flex:none}
+.gj-ticker-viewport{flex:1;min-width:0;overflow:hidden;white-space:nowrap}
+.gj-ticker-items{display:inline-flex;align-items:center;gap:30px;min-width:max-content;animation:gjLiveTicker 46s linear infinite}
+.gj-ticker-items a,.gj-ticker-items span{color:#fff;text-decoration:none;font-size:11px;font-weight:650}
+.gj-ticker-items a:before{content:"•";color:#f5c12e;margin-right:9px}
+.gj-ticker-items a:hover{text-decoration:underline}
+.gj-ticker-items .gj-ticker-ad{color:#f5d77b;font-weight:850}
+.gj-ticker-items .gj-ticker-placeholder{color:#d7e5f8}
+.gj-live-ticker:hover .gj-ticker-items{animation-play-state:paused}
+@keyframes gjLiveTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(max-width:520px){.gj-live-ticker{padding:5px 9px}.gj-ticker-top strong{font-size:10px}.gj-ticker-top time{font-size:9px}.gj-ticker-bottom{height:24px}.gj-ticker-items a,.gj-ticker-items span{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.gj-ticker-items{animation:none!important}}
