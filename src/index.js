@@ -298,7 +298,8 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
           "Create ATS-friendly, concise CV wording using ONLY the candidate facts supplied below.",
           "Never invent employers, dates, qualifications, certificates, tools, achievements, metrics, visa status, or skills.",
           "Do not add unsupported claims. If information is missing, omit it.",
-          "Return ONLY valid JSON with keys: headline (string), summary (string), experience_bullets (array of 3 to 6 short strings), skills (array of strings).",
+          "Return ONLY valid JSON with keys: headline (string), summary (string), role_profile (string), experience_bullets (array of 3 to 6 short strings), responsibilities (array of 3 to 5 short strings), skills (array of strings).",
+          "Make role_profile and responsibilities relevant to the target job position, but include only duties and skills supported by the candidate facts. Do not claim the candidate performed duties they did not mention; omit unsupported duties.",
           "Use professional natural English suitable for Gulf employers. No markdown fences.",
           "Candidate facts:", JSON.stringify(fields)
         ].join("\n");
@@ -316,7 +317,7 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
           if (start < 0 || end <= start) throw new Error("AI response was not valid JSON");
           const cv = JSON.parse(answer.slice(start, end + 1));
           const cleanList = value => Array.isArray(value) ? value.slice(0, 8).map(v => cleanText(v, 220)).filter(Boolean) : [];
-          return json({ headline: cleanText(cv.headline, 120) || fields.target_role, summary: cleanText(cv.summary, 900), experience_bullets: cleanList(cv.experience_bullets), skills: cleanList(cv.skills) }, 200, { ...cors, "Cache-Control": "no-store" });
+          return json({ headline: cleanText(cv.headline, 120) || fields.target_role, summary: cleanText(cv.summary, 900), role_profile: cleanText(cv.role_profile, 700), experience_bullets: cleanList(cv.experience_bullets), responsibilities: cleanList(cv.responsibilities), skills: cleanList(cv.skills) }, 200, { ...cors, "Cache-Control": "no-store" });
         } catch (error) {
           console.error("CV AI generation failed:", error?.message || error);
           return json({ error: "AI CV content generate nahi ho saka. Details thodi chhoti karke dobara try karein." }, 502, cors);
