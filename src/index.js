@@ -371,8 +371,8 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
         }
       }
 
-      // Public candidate tracker: returns candidate name, job title, date and status.
-      // Does not return email, phone, message or private document path.
+      // Public candidate tracker: returns only job title and application status.
+      // Candidate name, phone, email, date and private document details are not exposed.
       if (path === "/api/application-status" && request.method === "GET") {
         const suppliedPhone = cleanText(url.searchParams.get("phone"), 30);
         const digits = suppliedPhone.replace(/\D/g, "");
@@ -393,9 +393,7 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
 
         return json({
           applications: matched.map(row => ({
-            candidate_name: row.candidate_name || "Candidate",
             job_title: row.jobs?.title || "General Application",
-            application_date: row.created_at,
             status: row.status || "new"
           }))
         }, 200, { ...cors, "Cache-Control": "no-store" });
