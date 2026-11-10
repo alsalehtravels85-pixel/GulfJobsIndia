@@ -180,19 +180,12 @@ async function loadJobs() {
     // API array ya {jobs: [...]} format dono handle karein.
     const jobs = Array.isArray(data) ? data : (data.jobs || []);
 
-    select.innerHTML =
-      '<option value="">Select published job</option>' +
-      jobs.map(job => {
-        const title = job.title || job.job_title || "Job";
-        const country = job.country ? " — " + job.country : "";
-
-        return `<option value="${escapeHTML(job.id)}">${escapeHTML(title + country)}</option>`;
-      }).join("");
-
-    if (!jobs.length) {
-      select.innerHTML =
-        '<option value="">Abhi published jobs nahi hain</option>';
-    }
+    select.innerHTML = jobs.length ? jobs.map(job => `
+      <label class="agent-job-option">
+        <input type="checkbox" name="job_ids" value="${escapeHTML(job.id)}">
+        <span><strong>${escapeHTML(job.title || job.job_title || "Job")}</strong><small>${escapeHTML(job.country || "Gulf")}</small></span>
+      </label>
+    `).join("") : '<p>Abhi published jobs nahi hain.</p>';
 
   } catch (error) {
     select.innerHTML =
@@ -284,6 +277,11 @@ $("#applicationForm").addEventListener("submit", async event => {
   const button = $("#submitBtn");
   const message = $("#applicationMsg");
   const file = form.elements.document.files[0];
+  const selectedJobs = form.querySelectorAll('input[name="job_ids"]:checked');
+  if (!selectedJobs.length || selectedJobs.length > 10) {
+    showMessage(message, "Kam se kam 1 aur maximum 10 jobs select karein.", "error");
+    return;
+  }
 
   if (!file) {
     showMessage(message, "Candidate ka PDF document select karein.", "error");
