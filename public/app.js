@@ -511,7 +511,7 @@ $("#applicationForm")?.addEventListener("submit", async event => {
         message.classList.add("error"); message.textContent = "Is mobile number se koi application nahi mili. Wahi number check karein jo form mein diya tha."; return;
       }
       message.classList.add("success"); message.textContent = `${data.applications.length} application(s) mili.`;
-      results.innerHTML = data.applications.map(item => `<article class="tracker-result"><strong>Job Title: ${safe(item.job_title || "General Application")}</strong><span class="tracker-status status-${safe(item.status)}">${safe(statusLabel(item.status))}</span></article>`).join("");
+      results.innerHTML = data.applications.map(item => `<article class="tracker-result"><strong>Candidate Name: ${safe(item.candidate_name || "Candidate")}</strong><strong>Job Title: ${safe(item.job_title || "General Application")}</strong><span>Application Date: ${safe(item.application_date || "—")}</span><span class="tracker-status status-${safe(item.status)}">${safe(statusLabel(item.status))}</span></article>`).join("");
     } catch (error) {
       message.classList.add("error"); message.textContent = error.message || "Network error. Dobara try karein.";
     } finally { button.disabled = false; button.textContent = "Check Status"; }
