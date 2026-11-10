@@ -141,11 +141,10 @@
           <input name="email" type="email" maxlength="160">
         </label>
 
-        <label>Select Job *
-          <select name="job_id" id="jobSelect" required>
-            <option value="">Loading jobs...</option>
-          </select>
-        </label>
+        <fieldset class="agent-job-picker">
+          <legend>Select Jobs * <small>(maximum 10)</small></legend>
+          <div id="jobSelect" class="agent-job-list"><p>Loading jobs...</p></div>
+        </fieldset>
 
         <label>Candidate Document (PDF, max 10 MB) *
           <input name="document" type="file" accept=".pdf,application/pdf" required>
@@ -187,6 +186,6 @@
   </section>
 </main>
 
-<script src="/agent.js?v=20261102" defer></script>
+<script src="/agent.js?v=20261111-multijob" defer></script>
 </body>
 </html>
