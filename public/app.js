@@ -99,9 +99,9 @@ function renderJobs() {
   const jobList = $("#jobList");
   const noJobs = $("#noJobs");
   const jobCount = $("#jobCount");
-  const applySelect = $("#applyJob");
+  const applyChoices = $("#applyJobChoices");
 
-  if (!jobList || !noJobs || !jobCount || !applySelect) return;
+  if (!jobList || !noJobs || !jobCount || !applyChoices) return;
 
   const query = ($("#searchInput")?.value || "").toLowerCase().trim();
   const country = $("#countryFilter")?.value || "";
@@ -130,19 +130,13 @@ function renderJobs() {
   jobCount.textContent =
     `${filtered.length} ${filtered.length === 1 ? "job" : "jobs"}`;
 
-  const previousSelection = applySelect.value;
-
-  applySelect.innerHTML =
-    `<option value="">Select a published job</option>` +
-    allJobs.map(job => `
-      <option value="${escapeHtml(job.id)}">
-        ${escapeHtml(job.title || "Gulf Job")} — ${escapeHtml(job.country || "Gulf")}
-      </option>
-    `).join("");
-
-  if (allJobs.some(job => String(job.id) === previousSelection)) {
-    applySelect.value = previousSelection;
-  }
+  const selectedIds = new Set(Array.from(applyChoices.querySelectorAll('input[name="job_ids"]:checked')).map(input => input.value));
+  applyChoices.innerHTML = allJobs.length ? allJobs.map(job => `
+    <label class="job-choice">
+      <input type="checkbox" name="job_ids" value="${escapeHtml(job.id)}" ${selectedIds.has(String(job.id)) ? "checked" : ""}>
+      <span><strong>${escapeHtml(job.title || "Gulf Job")}</strong><small>${escapeHtml(job.country || "Gulf")} · ${escapeHtml(job.company_name || "Employer")}</small></span>
+    </label>
+  `).join("") : '<p class="job-picker-empty">Abhi published jobs available nahi hain.</p>';
 }
 function openSharedJobFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -359,10 +353,9 @@ document.addEventListener("click", event => {
   const applyButton = event.target.closest(".apply-job");
 
   if (applyButton) {
-    const select = $("#applyJob");
-
-    if (select) select.value = applyButton.dataset.id || "";
-
+    const choices = $("#applyJobChoices");
+    const target = Array.from(choices?.querySelectorAll('input[name="job_ids"]') || []).find(input => input.value === applyButton.dataset.id);
+    if (target) target.checked = true;
     $("#apply")?.scrollIntoView({ behavior: "smooth" });
   }
 
@@ -427,6 +420,12 @@ $("#applicationForm")?.addEventListener("submit", async event => {
   message.textContent = "";
 
   const file = form.elements.namedItem("document")?.files?.[0];
+  const selectedJobs = form.querySelectorAll('input[name="job_ids"]:checked');
+  if (!selectedJobs.length || selectedJobs.length > 10) {
+    message.classList.add("error");
+    message.textContent = "Kam se kam 1 aur maximum 10 jobs select karein.";
+    return;
+  }
 
   if (!file) {
     message.classList.add("error");
@@ -487,14 +486,14 @@ $("#applicationForm")?.addEventListener("submit", async event => {
 
 /* CANDIDATE APPLICATION STATUS TRACKER */
 (function initApplicationTracker() {
-  const form = document.getElementById("applicationTrackerForm");
+  const form = document.getElementById("statusCheckForm");
   if (!form) return;
-  const phoneInput = document.getElementById("trackerPhone");
-  const button = document.getElementById("checkApplicationStatus");
-  const message = document.getElementById("trackerMessage");
-  const results = document.getElementById("trackerResults");
+  const phoneInput = document.getElementById("statusPhone");
+  const button = document.getElementById("checkStatusBtn");
+  const message = document.getElementById("statusCheckMessage");
+  const results = document.getElementById("statusResults");
   const safe = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-  const statusLabel = status => ({new:"New", reviewing:"Received", selected:"Selected", rejected:"Rejected"}[String(status || "").toLowerCase()] || "Received");
+  const statusLabel = status => ({new:"Received", reviewing:"Under Review", selected:"Selected", rejected:"Not Selected"}[String(status || "").toLowerCase()] || "Received");
   form.addEventListener("submit", async event => {
     event.preventDefault();
     message.textContent = ""; message.className = "form-message"; results.innerHTML = "";
@@ -511,7 +510,7 @@ $("#applicationForm")?.addEventListener("submit", async event => {
         message.classList.add("error"); message.textContent = "Is mobile number se koi application nahi mili. Wahi number check karein jo form mein diya tha."; return;
       }
       message.classList.add("success"); message.textContent = `${data.applications.length} application(s) mili.`;
-      results.innerHTML = data.applications.map(item => `<article class="tracker-result"><strong>Candidate Name: ${safe(item.candidate_name || "Candidate")}</strong><strong>Job Title: ${safe(item.job_title || "General Application")}</strong><span>Application Date: ${safe(item.application_date || "—")}</span><span class="tracker-status status-${safe(item.status)}">${safe(statusLabel(item.status))}</span></article>`).join("");
+      results.innerHTML = data.applications.map(item => `<article class="tracker-result"><strong>Job: ${safe(item.job_title || "General Application")}</strong><span>Application Date: ${safe(item.application_date ? new Date(item.application_date).toLocaleDateString("en-IN") : "—")}</span><span class="tracker-status status-${safe(item.status)}">${safe(statusLabel(item.status))}</span></article>`).join("");
     } catch (error) {
       message.classList.add("error"); message.textContent = error.message || "Network error. Dobara try karein.";
     } finally { button.disabled = false; button.textContent = "Check Status"; }
