@@ -309,7 +309,9 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
               { role: "system", content: "You write factual, ATS-friendly CV content. Follow the requested JSON schema exactly." },
               { role: "user", content: prompt }
             ],
-            max_tokens: 900
+            max_completion_tokens: 1200,
+            response_format: { type: "json_object" },
+            chat_template_kwargs: { enable_thinking: false }
           });
           let answer = result?.response || result?.choices?.[0]?.message?.content || result?.result || "";
           if (typeof answer !== "string") answer = JSON.stringify(answer);
