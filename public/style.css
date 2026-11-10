@@ -2358,3 +2358,17 @@ body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:
 @keyframes gjLiveTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media(max-width:520px){.gj-live-ticker{padding:5px 9px}.gj-ticker-top strong{font-size:10px}.gj-ticker-top time{font-size:9px}.gj-ticker-bottom{height:24px}.gj-ticker-items a,.gj-ticker-items span{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.gj-ticker-items{animation:none!important}}
+
+/* GulfJobsIndia — multi-job application picker */
+.job-picker-field,.agent-job-picker{min-width:0;margin:0 0 14px;padding:12px;border:1px solid #dce6df;border-radius:12px;background:#fbfdfb}
+.job-picker-field legend,.agent-job-picker legend{padding:0 5px;font-size:12px;font-weight:850}
+.job-picker-field legend span{color:#b44337}
+.job-picker-hint{margin:0 0 9px;color:#66766f;font-size:10px}
+.job-picker-list,.agent-job-list{display:grid;gap:7px;max-height:260px;overflow:auto}
+.job-choice,.agent-job-option{display:flex!important;align-items:center;gap:10px;margin:0!important;padding:10px;border:1px solid #e2ebe5;border-radius:9px;background:#fff;cursor:pointer}
+.job-choice:has(input:checked),.agent-job-option:has(input:checked){border-color:#087454;background:#eaf6ef}
+.job-choice input,.agent-job-option input{width:17px!important;height:17px;flex:0 0 17px;margin:0!important;accent-color:#087454}
+.job-choice span,.agent-job-option span{min-width:0;display:grid;gap:2px}
+.job-choice strong,.agent-job-option strong{font-size:11px}
+.job-choice small,.agent-job-option small{color:#66766f;font-size:9px;font-weight:500}
+.job-picker-empty{color:#66766f;font-size:11px}
