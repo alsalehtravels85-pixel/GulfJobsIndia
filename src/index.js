@@ -281,6 +281,48 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
         return json({ whatsappNumber: env.WHATSAPP_NUMBER || "918576850306" }, 200, cors);
       }
 
+      // AI CV helper. Contact details stay in the browser and are never sent to the model.
+      if (path === "/api/cv/generate" && request.method === "POST") {
+        if (!env.AI || typeof env.AI.run !== "function") return json({ error: "AI CV service abhi configured nahi hai. Cloudflare Workers AI binding check karein." }, 503, cors);
+        const body = await request.json();
+        const fields = {
+          target_role: cleanText(body.target_role, 120), country: cleanText(body.country, 60),
+          experience_years: cleanText(body.experience_years, 40), experience: cleanText(body.experience, 3200),
+          education: cleanText(body.education, 1000), skills: cleanText(body.skills, 1000),
+          languages: cleanText(body.languages, 300), certifications: cleanText(body.certifications, 700)
+        };
+        const total = Object.values(fields).join(" ").length;
+        if (!fields.target_role || !fields.experience || total > 7500) return json({ error: "Target job aur work experience zaroor bharein. CV details 7,500 characters se kam rakhein." }, 400, cors);
+        const prompt = [
+          "You are a professional Gulf-region CV writer.",
+          "Create ATS-friendly, concise CV wording using ONLY the candidate facts supplied below.",
+          "Never invent employers, dates, qualifications, certificates, tools, achievements, metrics, visa status, or skills.",
+          "Do not add unsupported claims. If information is missing, omit it.",
+          "Return ONLY valid JSON with keys: headline (string), summary (string), experience_bullets (array of 3 to 6 short strings), skills (array of strings).",
+          "Use professional natural English suitable for Gulf employers. No markdown fences.",
+          "Candidate facts:", JSON.stringify(fields)
+        ].join("\n");
+        try {
+          const result = await env.AI.run("@cf/google/gemma-4-26b-a4b-it", {
+            messages: [
+              { role: "system", content: "You write factual, ATS-friendly CV content. Follow the requested JSON schema exactly." },
+              { role: "user", content: prompt }
+            ],
+            max_tokens: 900
+          });
+          let answer = result?.response || result?.choices?.[0]?.message?.content || result?.result || "";
+          if (typeof answer !== "string") answer = JSON.stringify(answer);
+          const start = answer.indexOf("{"), end = answer.lastIndexOf("}");
+          if (start < 0 || end <= start) throw new Error("AI response was not valid JSON");
+          const cv = JSON.parse(answer.slice(start, end + 1));
+          const cleanList = value => Array.isArray(value) ? value.slice(0, 8).map(v => cleanText(v, 220)).filter(Boolean) : [];
+          return json({ headline: cleanText(cv.headline, 120) || fields.target_role, summary: cleanText(cv.summary, 900), experience_bullets: cleanList(cv.experience_bullets), skills: cleanList(cv.skills) }, 200, { ...cors, "Cache-Control": "no-store" });
+        } catch (error) {
+          console.error("CV AI generation failed:", error?.message || error);
+          return json({ error: "AI CV content generate nahi ho saka. Details thodi chhoti karke dobara try karein." }, 502, cors);
+        }
+      }
+
       if (path === "/api/admin/login" && request.method === "POST") {
         if (!env.ADMIN_PASSWORD || !env.SESSION_SECRET) return json({ error: "Admin secrets are not configured in Cloudflare." }, 500, cors);
         const body = await request.json();
@@ -352,22 +394,31 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
           return new Response(t, { headers: { ...cors, "Content-Type": "application/json" } });
         }
         if (path === "/api/agent/applications" && request.method === "POST") {
-          const form = await request.formData(), candidateName = cleanText(form.get("candidate_name"), 100), phone = cleanText(form.get("phone"), 20), email = cleanText(form.get("email"), 160), message = cleanText(form.get("message"), 1000), jobId = cleanText(form.get("job_id"), 50), file = form.get("document");
+          const form = await request.formData();
+          const candidateName = cleanText(form.get("candidate_name"), 100), phone = cleanText(form.get("phone"), 20);
+          const email = cleanText(form.get("email"), 160), message = cleanText(form.get("message"), 1000);
+          const rawIds = form.getAll("job_ids").map(v => cleanText(v, 50)).filter(Boolean);
+          const legacyId = cleanText(form.get("job_id"), 50);
+          const jobIds = [...new Set(rawIds.length ? rawIds : (legacyId ? [legacyId] : []))];
+          const file = form.get("document");
           if (!candidateName || !phone || !file || typeof file.arrayBuffer !== "function") return json({ error: "Candidate name, mobile aur PDF zaroori hain." }, 400, cors);
           if (!/^[0-9+() -]{7,20}$/.test(phone)) return json({ error: "Mobile number check karein." }, 400, cors);
           if (file.size > 10 * 1024 * 1024) return json({ error: "PDF maximum 10 MB ki ho sakti hai." }, 400, cors);
+          if (!jobIds.length || jobIds.length > 10 || jobIds.some(id => !/^[0-9a-f-]{36}$/i.test(id))) return json({ error: "1 se 10 published jobs select karein." }, 400, cors);
           const bytes = new Uint8Array(await file.arrayBuffer()); if (!isPdf(bytes)) return json({ error: "Sirf valid PDF upload karein." }, 400, cors);
-          if (!jobId) return json({ error: "Candidate ke liye job select karein." }, 400, cors);
-          const jr = await db(env, `jobs?id=eq.${encodeURIComponent(jobId)}&status=eq.published&select=id&limit=1`);
-          if (!jr.ok || !(await jr.json()).length) return json({ error: "Published job select karein." }, 400, cors);
+          const jr = await db(env, `jobs?id=in.(${jobIds.join(",")})&status=eq.published&select=id,title`);
+          if (!jr.ok) return json({ error: "Published jobs verify nahi ho sakin." }, 502, cors);
+          const jobs = await jr.json();
+          if (jobs.length !== jobIds.length) return json({ error: "Selected jobs mein se koi job ab available nahi hai. Refresh karke dobara select karein." }, 400, cors);
           const objectPath = `agent-applications/${identity.agent_id}/${crypto.randomUUID()}.pdf`;
           const storageUrl = env.SUPABASE_URL.replace(/\/$/, "") + "/storage/v1/object/gulf-applications/" + objectPath;
           const upload = await fetch(storageUrl, { method: "POST", headers: supabaseHeaders(env, { "Content-Type": "application/pdf", "x-upsert": "false" }), body: bytes });
           if (!upload.ok) return json({ error: "PDF upload nahi hui. Supabase storage check karein." }, 502, cors);
-          const ins = await db(env, "applications", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ job_id: jobId, candidate_name: candidateName, phone, email: email || null, message: message || null, document_path: objectPath, status: "new", agent_id: identity.agent_id }) });
-          if (!ins.ok) { await fetch(storageUrl, { method: "DELETE", headers: supabaseHeaders(env) }); return json({ error: "Application save nahi hui. Database schema update karein." }, 502, cors); }
-          await sendEmail(env, `Agent application: ${candidateName}`, `Agent ID: ${identity.agent_id}\nCandidate: ${candidateName}\nPhone: ${phone}\nPlease review in admin panel.`);
-          return json({ ok: true, message: "Candidate application submit ho gayi." }, 201, cors);
+          const rows = jobs.map(job => ({ job_id: job.id, candidate_name: candidateName, phone, email: email || null, message: message || null, document_path: objectPath, status: "new", agent_id: identity.agent_id }));
+          const ins = await db(env, "applications", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(rows) });
+          if (!ins.ok) { await fetch(storageUrl, { method: "DELETE", headers: supabaseHeaders(env) }); return json({ error: "Applications save nahi hui. Database schema check karein." }, 502, cors); }
+          await sendEmail(env, `Agent applications: ${candidateName}`, `Agent ID: ${identity.agent_id}\nCandidate: ${candidateName}\nPhone: ${phone}\nJobs: ${jobs.map(j => j.title).join(", ")}\nPlease review in admin panel.`);
+          return json({ ok: true, count: jobs.length, message: `Candidate ki ${jobs.length} job application(s) submit ho gayi.` }, 201, cors);
         }
       }
 
@@ -403,61 +454,36 @@ Sitemap: https://gulfjobsindia.pages.dev/sitemap.xml
 
       if (path === "/api/applications" && request.method === "POST") {
         const form = await request.formData();
-        const candidateName = cleanText(form.get("candidate_name"), 100);
-        const phone = cleanText(form.get("phone"), 20);
-        const email = cleanText(form.get("email"), 160);
-        const message = cleanText(form.get("message"), 1000);
-        const jobId = cleanText(form.get("job_id"), 50);
+        const candidateName = cleanText(form.get("candidate_name"), 100), phone = cleanText(form.get("phone"), 20);
+        const email = cleanText(form.get("email"), 160), message = cleanText(form.get("message"), 1000);
+        const rawIds = form.getAll("job_ids").map(v => cleanText(v, 50)).filter(Boolean);
+        const legacyId = cleanText(form.get("job_id"), 50);
+        const jobIds = [...new Set(rawIds.length ? rawIds : (legacyId ? [legacyId] : []))];
         const file = form.get("document");
-        if (!candidateName || !phone || !file || typeof file.arrayBuffer !== "function") {
-          return json({ error: "Name, mobile number aur ek PDF file zaroori hain." }, 400, cors);
-        }
+        if (!candidateName || !phone || !file || typeof file.arrayBuffer !== "function") return json({ error: "Name, mobile number aur ek PDF file zaroori hain." }, 400, cors);
         if (!/^[0-9+() -]{7,20}$/.test(phone)) return json({ error: "Mobile number check karein." }, 400, cors);
         if (file.size > 10 * 1024 * 1024) return json({ error: "PDF maximum 10 MB ki ho sakti hai." }, 400, cors);
         if (file.type && file.type !== "application/pdf") return json({ error: "Sirf PDF file upload karein." }, 400, cors);
+        if (!jobIds.length || jobIds.length > 10 || jobIds.some(id => !/^[0-9a-f-]{36}$/i.test(id))) return json({ error: "1 se 10 published jobs select karein." }, 400, cors);
         const bytes = new Uint8Array(await file.arrayBuffer());
         if (!isPdf(bytes)) return json({ error: "File valid PDF nahi lag rahi." }, 400, cors);
-
-        let jobTitle = "General application";
-        if (jobId) {
-          const jr = await db(env, `jobs?id=eq.${encodeURIComponent(jobId)}&status=eq.published&select=id,title&limit=1`);
-          if (jr.ok) {
-            const rows = await jr.json();
-            if (!rows.length) return json({ error: "Ye job ab available nahi hai. Page refresh karein." }, 400, cors);
-            jobTitle = rows[0].title;
-          } else return json({ error: "Job verify nahi ho saki." }, 502, cors);
-        }
-
-        const safeName = crypto.randomUUID() + ".pdf";
-        const objectPath = `applications/${new Date().getUTCFullYear()}/${safeName}`;
+        const jr = await db(env, `jobs?id=in.(${jobIds.join(",")})&status=eq.published&select=id,title`);
+        if (!jr.ok) return json({ error: "Selected jobs verify nahi ho sakin." }, 502, cors);
+        const jobs = await jr.json();
+        if (jobs.length !== jobIds.length) return json({ error: "Selected jobs mein se koi job ab available nahi hai. Refresh karke dobara select karein." }, 400, cors);
+        const objectPath = `applications/${new Date().getUTCFullYear()}/${crypto.randomUUID()}.pdf`;
         const storageUrl = env.SUPABASE_URL.replace(/\/$/, "") + "/storage/v1/object/gulf-applications/" + objectPath;
-        const upload = await fetch(storageUrl, {
-          method: "POST",
-          headers: supabaseHeaders(env, { "Content-Type": "application/pdf", "x-upsert": "false" }),
-          body: bytes
-        });
+        const upload = await fetch(storageUrl, { method: "POST", headers: supabaseHeaders(env, { "Content-Type": "application/pdf", "x-upsert": "false" }), body: bytes });
         if (!upload.ok) return json({ error: "PDF upload nahi ho saki. Thodi der baad dobara try karein." }, 502, cors);
-
-        const insert = await db(env, "applications", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Prefer: "return=minimal" },
-          body: JSON.stringify({
-            job_id: jobId || null,
-            candidate_name: candidateName,
-            phone,
-            email: email || null,
-            message: message || null,
-            document_path: objectPath,
-            status: "new"
-          })
-        });
+        const rows = jobs.map(job => ({ job_id: job.id, candidate_name: candidateName, phone, email: email || null, message: message || null, document_path: objectPath, status: "new" }));
+        const insert = await db(env, "applications", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(rows) });
         if (!insert.ok) {
           await fetch(storageUrl, { method: "DELETE", headers: supabaseHeaders(env) });
           return json({ error: "Application save nahi hui. Database setup check karna hoga." }, 502, cors);
         }
-        await sendEmail(env, `New GulfJobsIndia application: ${candidateName}`, 
-          `New application received.\nName: ${candidateName}\nPhone: ${phone}\nEmail: ${email || "Not provided"}\nJob: ${jobTitle}\nStatus: New\nPlease login to the admin panel to review the private PDF.`);
-        return json({ ok: true, message: "Application submit ho gayi! Hum aapse zaroorat padne par contact karenge." }, 201, cors);
+        await sendEmail(env, `New GulfJobsIndia applications: ${candidateName}`,
+          `New application received.\nName: ${candidateName}\nPhone: ${phone}\nEmail: ${email || "Not provided"}\nJobs: ${jobs.map(j => j.title).join(", ")}\nStatus: New\nPlease login to the admin panel to review the private PDF.`);
+        return json({ ok: true, count: jobs.length, message: `Aapki ${jobs.length} job application(s) submit ho gayi! Hum aapse zaroorat padne par contact karenge.` }, 201, cors);
       }
 
       if (path.startsWith("/api/admin/")) {
