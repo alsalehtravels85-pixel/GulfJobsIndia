@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <meta name="description" content="Create a professional Gulf job CV with AI assistance. Build an ATS-friendly resume and print or save it as an A4 PDF for Saudi Arabia, UAE, Kuwait, Oman and Bahrain jobs.">
+  <meta name="theme-color" content="#064e3b">
+  <title>AI CV Maker – Professional Gulf Job Resume | GulfJobsIndia</title>
+  <link rel="canonical" href="https://gulfjobsindia.pages.dev/cv.html">
+  <link rel="stylesheet" href="/style.css?v=20261111-cv-multijob"><link rel="stylesheet" href="/cv.css?v=20261111">
+</head>
+<body class="cv-page">
+<header class="site-header"><div class="container nav">
+  <a class="brand" href="/" aria-label="GulfJobsIndia home"><span class="brand-mark">✦</span><span>GulfJobs<span class="gold">India</span><small>Gulf Recruitment &amp; Manpower Services</small></span></a>
+  <a class="btn btn-green" href="/">← Back to Jobs</a>
+</div></header>
+<main class="cv-main container">
+  <section class="cv-hero"><span class="eyebrow">AI-ASSISTED RESUME BUILDER</span><h1>Build Your <span>Professional Gulf CV</span></h1>
+    <p>Apni real details bharein. AI aapke experience ko professional English CV wording mein arrange karega. Aapka phone/email AI ko send nahi hota aur CV server par save nahi hoti.</p>
+    <div class="cv-trust"><span>✓ ATS-friendly layout</span><span>✓ A4 print / PDF</span><span>✓ Saudi · UAE · Oman · Kuwait · Bahrain</span></div>
+  </section>
+  <div class="cv-layout">
+    <form id="cvForm" class="cv-form">
+      <div class="cv-form-head"><div><span class="eyebrow">STEP 01</span><h2>Your details</h2></div><span class="cv-private">🔒 Private</span></div>
+      <div class="cv-fields">
+        <label>Full name *<input name="full_name" required maxlength="100" placeholder="Your full name"></label>
+        <label>Mobile number *<input name="phone" required maxlength="25" placeholder="+91 98765 43210"></label>
+        <label>Email<input name="email" type="email" maxlength="160" placeholder="name@email.com"></label>
+        <label>Current city / country<input name="location" maxlength="100" placeholder="Lucknow, India"></label>
+        <label>Target job title *<input name="target_role" required maxlength="120" placeholder="Diesel Mechanic"></label>
+        <label>Preferred Gulf country<select name="country"><option value="">Any Gulf country</option><option>Saudi Arabia</option><option>UAE</option><option>Kuwait</option><option>Oman</option><option>Bahrain</option></select></label>
+        <label>Experience<input name="experience_years" maxlength="40" placeholder="5 years"></label>
+        <label>Education<input name="education" maxlength="1000" placeholder="Class 10 / ITI / Diploma"></label>
+        <label class="cv-wide">Work experience *<textarea name="experience" required rows="5" maxlength="3200" placeholder="Company / city, job role, dates and actual duties. Add each previous job on a new line."></textarea><small>Only real work details likhein. AI koi fake experience add nahi karega.</small></label>
+        <label class="cv-wide">Skills<input name="skills" maxlength="1000" placeholder="Engine repair, diagnostics, maintenance"></label>
+        <label>Languages<input name="languages" maxlength="300" placeholder="Hindi, Basic English"></label>
+        <label>Certificates (optional)<input name="certifications" maxlength="700" placeholder="ITI, safety certificate"></label>
+      </div>
+      <p id="cvMessage" class="cv-message" role="status" aria-live="polite"></p>
+      <div class="cv-actions"><button id="generateCv" class="btn btn-green" type="submit">✦ Generate CV with AI</button><button class="btn btn-light" type="reset">Clear Form</button></div>
+      <small class="cv-note">AI text ko download se pehle check karein. Apni qualification, employer aur dates verify karna zaroori hai.</small>
+    </form>
+    <aside class="cv-preview-wrap"><div class="cv-preview-top"><div><span class="eyebrow">LIVE PREVIEW</span><h2>Your CV</h2></div><button id="printCv" class="btn btn-gold" type="button" disabled>Download A4 PDF</button></div>
+      <article id="cvPreview" class="cv-paper" aria-live="polite"><div class="cv-empty"><span>✦</span><h3>Your professional CV will appear here</h3><p>Fill your details and select “Generate CV with AI”.</p></div></article>
+    </aside>
+  </div>
+</main>
+<footer class="site-footer"><div class="container footer-row"><a class="brand" href="/">GulfJobs<span class="gold">India</span></a><p>Build your CV. Verify your details. Apply with confidence.</p></div></footer>
+<script src="/cv.js?v=20261111" defer></script>
+</body></html>
