@@ -7,6 +7,9 @@ directory = "./public"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
+[ai]
+binding = "AI"
+
 [vars]
 WHATSAPP_NUMBER = "918576850306"
 # After deployment, set ALLOWED_ORIGIN to your actual website origin, e.g. https://gulfjobsindia.your-subdomain.workers.dev
