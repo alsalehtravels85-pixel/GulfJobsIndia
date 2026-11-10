@@ -196,8 +196,8 @@ openSharedJobFromUrl();
 /* SELECTED CANDIDATE CARDS */
 
 function storyCard(story, index) {
-  const name = String(story.candidate_name || "Candidate").trim();
-  const initial = name.charAt(0).toUpperCase() || "C";
+  const name = "Candidate";
+  const initial = "C";
 
   const palettes = [
     "story-green",
