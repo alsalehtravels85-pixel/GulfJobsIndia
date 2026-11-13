@@ -2478,3 +2478,36 @@ body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:
 .story-dot.active{width:22px;background:#1d4775}
 @media(max-width:520px){.success-grid{min-height:224px;padding:0 4px}.success-grid .success-card{min-height:205px;padding:17px 18px 14px}.success-carousel-controls{gap:13px;margin-top:14px}.story-nav-btn{width:36px;height:36px}}
 @media(prefers-reduced-motion:reduce){.story-enter{animation:none!important}.story-nav-btn,.story-dot{transition:none!important}}
+
+
+/* Borderless celebration-style selected candidate card */
+.success-grid .success-card{
+  position:relative;
+  isolation:isolate;
+  overflow:visible;
+  border:0!important;
+  outline:0!important;
+  box-shadow:0 14px 38px rgba(15,45,35,.09),0 0 34px rgba(244,212,119,.13)!important;
+  background:linear-gradient(145deg,#fff 0%,#fffdf5 52%,#f2fbf5 100%);
+}
+.success-grid .success-card::before,
+.success-grid .success-card::after{content:none!important;display:none!important}
+.success-grid .success-card-top,.success-grid .success-avatar,
+.success-grid .success-card-body,.success-grid .success-congrats{position:relative;z-index:2}
+.celebration-burst{position:absolute;inset:-17px -12px;z-index:1;pointer-events:none;overflow:visible}
+.celebration-burst i{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;opacity:0;animation:gjFirework 1.05s ease-out both}
+.celebration-burst i:nth-child(1){--dx:-145px;--dy:-72px;background:#f5b82e;animation-delay:.02s}
+.celebration-burst i:nth-child(2){--dx:145px;--dy:-76px;background:#16a36a;animation-delay:.08s}
+.celebration-burst i:nth-child(3){--dx:-165px;--dy:32px;background:#f07845;animation-delay:.13s}
+.celebration-burst i:nth-child(4){--dx:165px;--dy:35px;background:#4b8fe8;animation-delay:.18s}
+.celebration-burst i:nth-child(5){--dx:-85px;--dy:-112px;background:#e3b52d;animation-delay:.22s}
+.celebration-burst i:nth-child(6){--dx:90px;--dy:-112px;background:#17a879;animation-delay:.27s}
+.celebration-burst i:nth-child(7){--dx:-110px;--dy:95px;background:#e77c50;animation-delay:.32s}
+.celebration-burst i:nth-child(8){--dx:112px;--dy:96px;background:#598de0;animation-delay:.37s}
+@keyframes gjFirework{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2);box-shadow:0 0 0 0 currentColor}
+  18%{opacity:1}
+  70%{opacity:.9;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.8);box-shadow:0 0 0 5px transparent}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.2)}
+}
+@media(prefers-reduced-motion:reduce){.celebration-burst i{animation:none!important;display:none!important}}
