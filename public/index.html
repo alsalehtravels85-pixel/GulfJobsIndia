@@ -155,11 +155,13 @@
         Abhi selected candidates ki updates available nahi hain.
       </div>
 
-      <div class="show-more-wrap">
-        <button id="showMoreStories" class="btn btn-green show-more hidden"
-          type="button" aria-expanded="false">
-          Show More Candidates ↓
-        </button>
+      <div class="success-carousel-controls" id="successCarouselControls" aria-label="Selected candidate navigation">
+        <button class="story-nav-btn" id="storyPrev" type="button" aria-label="Previous candidate">‹</button>
+        <div class="story-carousel-status">
+          <span id="storyPosition" aria-live="polite">0 / 0</span>
+          <div class="story-dots" id="storyDots" aria-label="Candidate slides"></div>
+        </div>
+        <button class="story-nav-btn" id="storyNext" type="button" aria-label="Next candidate">›</button>
       </div>
     </div>
   </section>
