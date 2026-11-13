@@ -187,121 +187,124 @@ openSharedJobFromUrl();
   }
 }
 
-/* SELECTED CANDIDATE CARDS */
+/* SELECTED CANDIDATE AUTO-CAROUSEL */
+let activeStoryIndex = 0;
+let storyTimer = null;
+const STORY_INTERVAL = 5000;
 
 function storyCard(story, index) {
   const name = "Candidate";
   const initial = "C";
-
-  const palettes = [
-    "story-green",
-    "story-gold",
-    "story-blue",
-    "story-purple",
-    "story-orange"
-  ];
-
+  const palettes = ["story-green","story-gold","story-blue","story-purple","story-orange"];
   const palette = palettes[index % palettes.length];
 
   return `
-    <article class="success-card ${palette}">
+    <article class="success-card ${palette}" aria-label="Selected candidate ${index + 1} of ${allStories.length}">
       <div class="success-card-top">
         <span class="success-confetti" aria-hidden="true">✦</span>
         <span class="success-badge">✓ SELECTED</span>
       </div>
-
-      <div class="success-avatar" aria-hidden="true">
-        ${escapeHtml(initial)}
-      </div>
-
+      <div class="success-avatar" aria-hidden="true">${escapeHtml(initial)}</div>
       <div class="success-card-body">
         <h3>${escapeHtml(name)}</h3>
         <p class="success-job">${escapeHtml(story.job_title || "Gulf Job")}</p>
         <p class="success-country">🌍 ${escapeHtml(story.country || "Gulf")}</p>
       </div>
-
       <div class="success-congrats">🎉 Congratulations!</div>
     </article>
   `;
 }
 
-function renderSuccessStories() {
+function stopStoryAutoplay() {
+  if (storyTimer) {
+    clearInterval(storyTimer);
+    storyTimer = null;
+  }
+}
+
+function startStoryAutoplay() {
+  stopStoryAutoplay();
+  if (allStories.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  storyTimer = setInterval(() => showStory(activeStoryIndex + 1), STORY_INTERVAL);
+}
+
+function showStory(index, restartTimer = true) {
+  if (!allStories.length) return;
+  activeStoryIndex = (index + allStories.length) % allStories.length;
   const list = $("#successStories");
+  const position = $("#storyPosition");
+  const dots = $("#storyDots");
+  if (list) {
+    list.innerHTML = storyCard(allStories[activeStoryIndex], activeStoryIndex);
+    list.classList.remove("story-enter");
+    void list.offsetWidth;
+    list.classList.add("story-enter");
+  }
+  if (position) position.textContent = `${activeStoryIndex + 1} / ${allStories.length}`;
+  if (dots) {
+    dots.innerHTML = allStories.map((_, i) =>
+      `<button type="button" class="story-dot ${i === activeStoryIndex ? "active" : ""}" data-story-index="${i}" aria-label="Show candidate ${i + 1}" aria-current="${i === activeStoryIndex ? "true" : "false"}"></button>`
+    ).join("");
+  }
+  const prev = $("#storyPrev");
+  const next = $("#storyNext");
+  if (prev) prev.disabled = allStories.length < 2;
+  if (next) next.disabled = allStories.length < 2;
+  if (restartTimer) startStoryAutoplay();
+}
+
+function renderSuccessStories() {
   const count = $("#storyCount");
   const empty = $("#noStories");
-  const button = $("#showMoreStories");
-
-  if (!list) return;
-
-  const total = allStories.length;
-  const visible = showAllStories
-    ? allStories
-    : allStories.slice(0, INITIAL_STORIES);
-
-  if (count) count.textContent = `${total} selected`;
-
-  list.innerHTML = visible
-    .map((story, index) => storyCard(story, index))
-    .join("");
-
-  if (empty) {
-    empty.classList.toggle("hidden", total > 0);
+  const controls = $("#successCarouselControls");
+  if (count) count.textContent = `${allStories.length} selected`;
+  if (empty) empty.classList.toggle("hidden", allStories.length > 0);
+  if (controls) controls.classList.toggle("hidden", allStories.length === 0);
+  if (!allStories.length) {
+    stopStoryAutoplay();
+    $("#successStories").innerHTML = "";
+    return;
   }
-
-  if (button) {
-    const hasMore = total > INITIAL_STORIES;
-
-    button.classList.toggle("hidden", !hasMore);
-    button.setAttribute("aria-expanded", String(showAllStories));
-
-    button.textContent = showAllStories
-      ? "Show Less ↑"
-      : "Show More Candidates ↓";
-  }
+  showStory(0);
 }
 
 async function loadSuccessStories() {
   const list = $("#successStories");
   const count = $("#storyCount");
   const empty = $("#noStories");
-
   if (!list) return;
-
   try {
     const response = await fetch(`${API}/api/success-stories`);
-
     if (!response.ok) throw new Error("Stories unavailable");
-
     const stories = await response.json();
-
     if (!Array.isArray(stories)) throw new Error("Invalid candidate response");
-
     allStories = stories;
-    showAllStories = false;
-
     renderSuccessStories();
   } catch (error) {
     console.error("Candidate updates loading error:", error);
-
+    stopStoryAutoplay();
     if (count) count.textContent = "Updates";
-
     list.innerHTML = "";
-
     if (empty) {
       empty.textContent = "Candidate updates abhi load nahi ho paayi.";
       empty.classList.remove("hidden");
     }
-
-    $("#showMoreStories")?.classList.add("hidden");
+    $("#successCarouselControls")?.classList.add("hidden");
   }
 }
 
-/* SHOW MORE / SHOW LESS */
-
-$("#showMoreStories")?.addEventListener("click", () => {
-  showAllStories = !showAllStories;
-  renderSuccessStories();
+$("#storyPrev")?.addEventListener("click", () => showStory(activeStoryIndex - 1));
+$("#storyNext")?.addEventListener("click", () => showStory(activeStoryIndex + 1));
+$("#storyDots")?.addEventListener("click", event => {
+  const dot = event.target.closest("[data-story-index]");
+  if (dot) showStory(Number(dot.dataset.storyIndex));
 });
+
+const storyCarousel = $("#successStories");
+storyCarousel?.addEventListener("mouseenter", stopStoryAutoplay);
+storyCarousel?.addEventListener("mouseleave", startStoryAutoplay);
+storyCarousel?.addEventListener("focusin", stopStoryAutoplay);
+storyCarousel?.addEventListener("focusout", startStoryAutoplay);
 
 /* APPLY BUTTON AND COUNTRY CARDS */
 
