@@ -2456,3 +2456,25 @@ body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:
   #mainNav > a{width:100%;justify-content:flex-start;min-height:44px;margin:0}
   .hero-actions a[href="/cv.html"]{width:100%;max-width:360px}
 }
+
+
+/* Selected candidates — single-card professional auto carousel */
+.success-grid{display:flex;justify-content:center;align-items:center;min-height:238px;max-width:540px;margin:0 auto;perspective:900px}
+.success-grid .success-card{width:min(100%,430px);min-height:218px;padding:20px 24px 16px;border-radius:18px;box-shadow:0 16px 38px rgba(14,34,61,.10)}
+.success-grid .success-card h3{font-size:19px}
+.success-grid .success-card p{font-size:14px}
+.success-grid .success-avatar{width:58px;height:58px;font-size:25px}
+.success-grid .success-badge{font-size:10px;padding:6px 10px}
+.success-grid .success-congrats{font-size:13px;padding:8px}
+.story-enter{animation:storySlideIn .48s cubic-bezier(.2,.75,.25,1) both}
+@keyframes storySlideIn{from{opacity:0;transform:translate3d(28px,8px,0) scale(.98)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+.success-carousel-controls{display:flex;align-items:center;justify-content:center;gap:18px;margin:18px auto 0}
+.story-nav-btn{width:40px;height:40px;display:grid;place-items:center;border:1px solid #dce4ee;border-radius:50%;background:#fff;color:#17385f;font-size:27px;line-height:1;cursor:pointer;box-shadow:0 5px 16px rgba(14,34,61,.07);transition:transform .2s,background .2s,color .2s}
+.story-nav-btn:hover:not(:disabled){transform:translateY(-2px);background:#17385f;color:#fff}
+.story-nav-btn:disabled{opacity:.4;cursor:default}
+.story-carousel-status{display:grid;justify-items:center;gap:9px;color:#66778c;font-size:12px;font-weight:750}
+.story-dots{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;max-width:220px}
+.story-dot{width:7px;height:7px;padding:0;border:0;border-radius:20px;background:#cbd5e1;cursor:pointer;transition:width .25s,background .25s}
+.story-dot.active{width:22px;background:#1d4775}
+@media(max-width:520px){.success-grid{min-height:224px;padding:0 4px}.success-grid .success-card{min-height:205px;padding:17px 18px 14px}.success-carousel-controls{gap:13px;margin-top:14px}.story-nav-btn{width:36px;height:36px}}
+@media(prefers-reduced-motion:reduce){.story-enter{animation:none!important}.story-nav-btn,.story-dot{transition:none!important}}
