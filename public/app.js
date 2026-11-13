@@ -200,6 +200,9 @@ function storyCard(story, index) {
 
   return `
     <article class="success-card ${palette}" aria-label="Selected candidate ${index + 1} of ${allStories.length}">
+      <div class="celebration-burst" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
       <div class="success-card-top">
         <span class="success-confetti" aria-hidden="true">✦</span>
         <span class="success-badge">✓ SELECTED</span>
